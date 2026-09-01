@@ -9,6 +9,11 @@
  */
 import type { Page } from "@playwright/test";
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+import { http, HttpResponse } from "msw";
+
 import { expect, test } from "./fixtures/app";
 import {
   columnHeader,
@@ -18,6 +23,16 @@ import {
 } from "./fixtures/log-list-scenario";
 import { serveEvalLog } from "./fixtures/serve-log";
 import { createEvalLog, createEvalSample } from "./fixtures/test-data";
+
+const TITLE_TEST_LOG = "title-collapse.eval";
+const titleTestLogBytes = readFileSync(
+  fileURLToPath(
+    new URL(
+      "../src/log_data/chunked/fixtures/logs/original/ais-decoder.eval",
+      import.meta.url
+    )
+  )
+);
 
 test.describe("Top-level views", () => {
   test("default route shows the Tasks view", async ({ page, network }) => {
@@ -137,13 +152,28 @@ test.describe("Top-level views", () => {
   });
 
   test("log header can be collapsed and expanded manually", async ({
-  page,
-  network,
-}) => {
-    setupLogListHandlers(network);
-    await page.goto("/");
-    await gridCell(page, "task-alpha").click();
-    await page.waitForURL(/#\/tasks\//);
+    page,
+    network,
+  }) => {
+    network.use(
+      http.get("*/api/logs", () => HttpResponse.json({ log_dir: "/logs" })),
+      http.get("*/api/log-files*", () =>
+        HttpResponse.json({
+          files: [{ name: TITLE_TEST_LOG, task: "title-collapse" }],
+          response_type: "full",
+        })
+      ),
+      http.get("*/api/log-info/:file", () =>
+        HttpResponse.json({ size: titleTestLogBytes.length })
+      ),
+      http.get("*/api/log-bytes/:file", ({ request }) => {
+        const url = new URL(request.url);
+        const start = Number(url.searchParams.get("start"));
+        const end = Number(url.searchParams.get("end"));
+        return new HttpResponse(titleTestLogBytes.subarray(start, end + 1));
+      })
+    );
+    await page.goto(`/#/tasks/${TITLE_TEST_LOG}`);
 
     const collapse = page.getByRole("button", { name: "Collapse header" });
     await expect(collapse).toBeVisible();
