@@ -5,6 +5,7 @@
 import Dexie from "dexie";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
+import type { Log } from "../client/api/types";
 import { DB_NAME } from "../client/database/schema";
 import {
   createDatabaseService,
@@ -12,7 +13,14 @@ import {
 } from "../client/database/service";
 import { queryClient } from "../state/queryClient";
 
-import { clearFile, writeListing, writePreviews } from "./logsContent";
+import {
+  clearFile,
+  logKey,
+  mergeFetchStates,
+  setRows,
+  writeListing,
+  writePreviews,
+} from "./logsContent";
 
 const invalidateListings = vi.hoisted(() => vi.fn());
 vi.mock("./databaseListings", async (importOriginal) => ({
@@ -81,5 +89,49 @@ describe("db-less write invalidation", () => {
   test("a db-less file clear refreshes the listings", async () => {
     await clearFile(null, "/plain/logs", "/plain/logs/a.eval");
     expect(invalidateListings).toHaveBeenCalled();
+  });
+});
+
+describe("observed log entries", () => {
+  const logDir = "/plain/logs";
+  const row: Log = {
+    name: "/plain/logs/a.eval",
+    depth: "listed",
+    preview_attempts: 0,
+    details_attempts: 0,
+    details_settled_seq: 0,
+  };
+
+  afterEach(() => {
+    queryClient.clear();
+  });
+
+  test("refreshes observed entity entries without materializing unobserved rows", () => {
+    setRows(logDir, [row]);
+    expect(queryClient.getQueryData(logKey(logDir, row.name))).toBeUndefined();
+
+    queryClient.setQueryData(logKey(logDir, row.name), row);
+    setRows(logDir, [{ ...row, task: "updated" }]);
+
+    expect(queryClient.getQueryData<Log>(logKey(logDir, row.name))?.task).toBe(
+      "updated"
+    );
+  });
+
+  test("merges fetch state into an observed entity entry", () => {
+    setRows(logDir, [row]);
+    queryClient.setQueryData(logKey(logDir, row.name), row);
+
+    mergeFetchStates(logDir, {
+      [row.name]: {
+        preview_attempts: 1,
+        details_attempts: 0,
+        details_settled_seq: 0,
+      },
+    });
+
+    expect(
+      queryClient.getQueryData<Log>(logKey(logDir, row.name))?.preview_attempts
+    ).toBe(1);
   });
 });
