@@ -7,11 +7,10 @@
  * - Each view renders its expected content
  * - Route prefixes are preserved when navigating into a log and back
  */
-import type { Page } from "@playwright/test";
-
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import type { Page } from "@playwright/test";
 import { http, HttpResponse } from "msw";
 
 import { expect, test } from "./fixtures/app";
