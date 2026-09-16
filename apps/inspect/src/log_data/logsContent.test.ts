@@ -91,31 +91,52 @@ describe("db-less write invalidation", () => {
   });
 });
 
-describe("observed entity cache updates", () => {
+describe("mergeFetchStates", () => {
+  const fetchState = {
+    preview_attempts: 2,
+    details_attempts: 0,
+    details_settled_seq: 0,
+  };
+
   afterEach(() => {
     queryClient.clear();
-    vi.restoreAllMocks();
   });
 
-  test("updates an observed log without scanning the query cache", () => {
+  test("fills an observed entry with null data from the listing row", () => {
     const key = logKey("/logs", "/logs/a.eval");
-    queryClient.setQueryData(key, null);
-    const find = vi.spyOn(queryClient.getQueryCache(), "find");
-
     setListing("/logs", [{ name: "/logs/a.eval", mtime: 1 }]);
-    mergeFetchStates("/logs", {
-      "/logs/a.eval": {
-        preview_attempts: 2,
-        details_attempts: 0,
-        details_settled_seq: 0,
-      },
-    });
+    // Observed, but the entity has no data of its own yet.
+    queryClient.setQueryData(key, null);
 
-    expect(find).not.toHaveBeenCalled();
+    mergeFetchStates("/logs", { "/logs/a.eval": fetchState });
+
     expect(queryClient.getQueryData(key)).toMatchObject({
       name: "/logs/a.eval",
       mtime: 1,
       preview_attempts: 2,
     });
+  });
+
+  test("merges into an observed entry that already has data", () => {
+    const key = logKey("/logs", "/logs/a.eval");
+    queryClient.setQueryData(key, null);
+    setListing("/logs", [{ name: "/logs/a.eval", mtime: 1 }]);
+
+    mergeFetchStates("/logs", { "/logs/a.eval": fetchState });
+
+    expect(queryClient.getQueryData(key)).toMatchObject({
+      name: "/logs/a.eval",
+      mtime: 1,
+      preview_attempts: 2,
+    });
+  });
+
+  test("never materializes an entry for an unobserved log", () => {
+    const key = logKey("/logs", "/logs/a.eval");
+    setListing("/logs", [{ name: "/logs/a.eval", mtime: 1 }]);
+
+    mergeFetchStates("/logs", { "/logs/a.eval": fetchState });
+
+    expect(queryClient.getQueryState(key)).toBeUndefined();
   });
 });
