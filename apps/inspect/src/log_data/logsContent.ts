@@ -1,3 +1,5 @@
+import { hashKey } from "@tanstack/react-query";
+
 import { LogHandle } from "@tsmono/inspect-common/types";
 import { useAsyncDataFromQuery } from "@tsmono/react/hooks";
 import { AsyncData, createLogger } from "@tsmono/util";
@@ -68,7 +70,7 @@ const newRow = (handle: LogHandle): Log => ({
  */
 const pushLog = (logDir: string, row: Log): void => {
   const key = logKey(logDir, row.name);
-  if (queryClient.getQueryCache().find({ queryKey: key })) {
+  if (queryClient.getQueryCache().get(hashKey(key))) {
     queryClient.setQueryData<Log>(key, row);
   }
 };
@@ -164,14 +166,17 @@ export const mergeFetchStates = (
   logDir: string,
   states: Record<string, LogFetchState>
 ): void => {
-  const byName = new Map(currentLogs(logDir).map((row) => [row.name, row]));
+  let byName: Map<string, Log> | undefined;
   for (const [name, state] of Object.entries(states)) {
     const key = logKey(logDir, name);
-    if (!queryClient.getQueryCache().find({ queryKey: key })) {
+    if (!queryClient.getQueryCache().get(hashKey(key))) {
       continue;
     }
     const current =
-      queryClient.getQueryData<Log | null>(key) ?? byName.get(name);
+      queryClient.getQueryData<Log | null>(key) ??
+      (byName ??= new Map(
+        currentLogs(logDir).map((row) => [row.name, row])
+      )).get(name);
     if (current) {
       queryClient.setQueryData<Log>(key, { ...current, ...state });
     }

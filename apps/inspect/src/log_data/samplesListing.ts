@@ -1,4 +1,4 @@
-import { keepPreviousData } from "@tanstack/react-query";
+import { hashKey, keepPreviousData } from "@tanstack/react-query";
 
 import { useAsyncDataFromQuery } from "@tsmono/react/hooks";
 import { AsyncData } from "@tsmono/util";
@@ -221,7 +221,7 @@ export const pushFileSamples = async (
   rows: SamplesListingRow[]
 ): Promise<void> => {
   const key = samplesListingKey({ logDir, scope: { file: logFile } });
-  if (!queryClient.getQueryCache().find({ queryKey: key })) {
+  if (!queryClient.getQueryCache().get(hashKey(key))) {
     return;
   }
   // A mount-time fetch still in flight would commit over this push (it read

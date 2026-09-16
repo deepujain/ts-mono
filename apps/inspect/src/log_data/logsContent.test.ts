@@ -12,7 +12,14 @@ import {
 } from "../client/database/service";
 import { queryClient } from "../state/queryClient";
 
-import { clearFile, writeListing, writePreviews } from "./logsContent";
+import {
+  clearFile,
+  logKey,
+  mergeFetchStates,
+  setListing,
+  writeListing,
+  writePreviews,
+} from "./logsContent";
 
 const invalidateListings = vi.hoisted(() => vi.fn());
 vi.mock("./databaseListings", async (importOriginal) => ({
@@ -81,5 +88,34 @@ describe("db-less write invalidation", () => {
   test("a db-less file clear refreshes the listings", async () => {
     await clearFile(null, "/plain/logs", "/plain/logs/a.eval");
     expect(invalidateListings).toHaveBeenCalled();
+  });
+});
+
+describe("observed entity cache updates", () => {
+  afterEach(() => {
+    queryClient.clear();
+    vi.restoreAllMocks();
+  });
+
+  test("updates an observed log without scanning the query cache", () => {
+    const key = logKey("/logs", "/logs/a.eval");
+    queryClient.setQueryData(key, null);
+    const find = vi.spyOn(queryClient.getQueryCache(), "find");
+
+    setListing("/logs", [{ name: "/logs/a.eval", mtime: 1 }]);
+    mergeFetchStates("/logs", {
+      "/logs/a.eval": {
+        preview_attempts: 2,
+        details_attempts: 0,
+        details_settled_seq: 0,
+      },
+    });
+
+    expect(find).not.toHaveBeenCalled();
+    expect(queryClient.getQueryData(key)).toMatchObject({
+      name: "/logs/a.eval",
+      mtime: 1,
+      preview_attempts: 2,
+    });
   });
 });
