@@ -1681,6 +1681,8 @@ export interface components {
             choices?: string[] | null;
             /** Completed At */
             completed_at?: string | null;
+            /** Description */
+            description?: string | null;
             /** Epoch */
             epoch: number;
             error?: components["schemas"]["EvalError"] | null;
@@ -1815,6 +1817,8 @@ export interface components {
             completed: boolean;
             /** Completed At */
             completed_at?: string | null;
+            /** Description */
+            description?: string | null;
             /** Epoch */
             epoch: number;
             /** Error */
@@ -2082,6 +2086,8 @@ export interface components {
             task_attribs: {
                 [key: string]: unknown;
             };
+            /** Task Description */
+            task_description?: string | null;
             /** Task Display Name */
             task_display_name?: string | null;
             /** Task File */
@@ -3148,6 +3154,8 @@ export interface components {
             checkpoint?: components["schemas"]["CheckpointSampleConfig"] | null;
             /** Choices */
             choices?: string[] | null;
+            /** Description */
+            description?: string | null;
             /** Files */
             files?: {
                 [key: string]: string;
