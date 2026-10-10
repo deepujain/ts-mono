@@ -69,7 +69,12 @@ test("legacy message selection exports original objects with folded tool results
       role: "assistant",
       content: "",
       tool_calls: [
-        { id: "call-1", function: "bash", arguments: {}, type: "function" },
+        {
+          id: "call-1",
+          function: "submit",
+          arguments: { answer: "command result" },
+          type: "function",
+        },
       ],
     },
     { role: "tool", content: "command result", tool_call_id: "call-1" },

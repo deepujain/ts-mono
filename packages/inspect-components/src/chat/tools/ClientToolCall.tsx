@@ -92,6 +92,7 @@ export const ClientToolCall: FC<ClientToolCallProps> = ({
   if (customView) {
     return (
       <div className={clsx(styles.custom, className)}>
+        {headerLeading}
         {customView}
         {afterInput}
         {outputReplacement}
