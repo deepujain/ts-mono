@@ -33,4 +33,19 @@ describe("useManualTitleCollapse", () => {
 
     expect(result.current.collapsed).toBe(true);
   });
+  it("does not restore an old manual choice after visiting another log", () => {
+    const { result, rerender } = renderHook(
+      ({ scope }) => useManualTitleCollapse(false, scope),
+      { initialProps: { scope: "first.eval" } }
+    );
+
+    act(() => result.current.setCollapsed(true));
+    expect(result.current.collapsed).toBe(true);
+
+    rerender({ scope: "second.eval" });
+    expect(result.current.collapsed).toBe(false);
+
+    rerender({ scope: "first.eval" });
+    expect(result.current.collapsed).toBe(false);
+  });
 });

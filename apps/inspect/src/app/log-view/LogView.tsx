@@ -17,6 +17,7 @@ import {
 } from "../../state/hooks";
 import { useSelectedLogLoading } from "../../state/selectedLogDetails";
 import { useStore } from "../../state/store";
+import { useCurrentLogFile } from "../routing/currentSelection";
 import { useLogNavigationAction } from "../routing/logNavigation";
 import { toFullUrlMaybe } from "../routing/url";
 
@@ -36,6 +37,7 @@ export const LogView: FC = () => {
   const divRef = useRef<HTMLDivElement>(null);
 
   const navigation = useLogNavigationAction();
+  const logFile = useCurrentLogFile();
 
   const selectedLogDetails = useSelectedLogDetails();
   const logLoading = useSelectedLogLoading();
@@ -45,9 +47,8 @@ export const LogView: FC = () => {
   const runningMetrics = useSelectedRunningMetrics().data;
 
   // Use individual tab config hooks
-  const samplesTabConfig = useSamplesTabConfig(
-    selectedLogDetails?.status,
-    refreshLog
+  const samplesTabConfig = useSamplesTabConfig(selectedLogDetails?.status, () =>
+    refreshLog(logFile)
   );
 
   const intoTabConfig = useInfoTabConfig(
@@ -109,9 +110,8 @@ export const LogView: FC = () => {
   const { hidden: autoTitleCollapsed } = useScrollDirection(scrollRefs, {
     stayHiddenOnUpScroll: true,
   });
-  const selectedLogFile = useStore((state) => state.logs.selectedLogFile);
   const { collapsed: titleCollapsed, setCollapsed: setTitleCollapsed } =
-    useManualTitleCollapse(autoTitleCollapsed, selectedLogFile);
+    useManualTitleCollapse(autoTitleCollapsed, logFile);
 
   const selectedTab = useStore((state) => state.app.tabs.workspace);
   const setSelectedTab = useStore((state) => state.appActions.setWorkspaceTab);

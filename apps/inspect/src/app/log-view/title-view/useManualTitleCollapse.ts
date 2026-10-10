@@ -2,17 +2,23 @@ import { useCallback, useState } from "react";
 
 interface ManualCollapse {
   scope: string | undefined;
-  collapsed: boolean;
+  collapsed: boolean | null;
 }
 
 export const useManualTitleCollapse = (
   autoCollapsed: boolean,
   scope: string | undefined
 ) => {
-  const [manual, setManual] = useState<ManualCollapse | null>(null);
+  const [manual, setManual] = useState<ManualCollapse>({
+    scope,
+    collapsed: null,
+  });
+  if (manual.scope !== scope) {
+    setManual({ scope, collapsed: null });
+  }
   const collapsed =
-    manual !== null && manual.scope === scope
-      ? manual.collapsed
+    manual.scope === scope
+      ? (manual.collapsed ?? autoCollapsed)
       : autoCollapsed;
 
   const setCollapsed = useCallback(
