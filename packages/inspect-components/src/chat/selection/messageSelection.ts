@@ -54,6 +54,7 @@ export const buildSelectableMessageIndex = (
   messages: readonly ChatMessage[]
 ): ReadonlyMap<string, ChatMessage[]> => {
   const rows: { id: string; messages: ChatMessage[] }[] = [];
+  const originals = new Map<ChatMessage, ChatMessage>();
   const fold = new MessageFold((row) => {
     // System messages never render as their own row; the merged system row
     // below stands in for all of them.
@@ -62,10 +63,21 @@ export const buildSelectableMessageIndex = (
     // the fold through and can't key a row, so it stays unselectable.
     const id = row.message.id;
     if (typeof id === "string") {
-      rows.push({ id, messages: [row.message, ...row.toolMessages] });
+      rows.push({
+        id,
+        messages: [row.message, ...row.toolMessages].map(
+          (message) => originals.get(message) ?? message
+        ),
+      });
     }
   });
-  messages.forEach((message, index) => fold.next(message, index));
+  messages.forEach((message, index) => {
+    // Give the fold its display ID without changing the exported object.
+    const resolved =
+      message.id === undefined ? { ...message, id: `msg-${index}` } : message;
+    originals.set(resolved, message);
+    fold.next(resolved, index);
+  });
   fold.end();
   const systemMessages = messages.filter(isSystemMessage);
   const merged = mergedSystemMessage(systemMessages);

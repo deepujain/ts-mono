@@ -72,6 +72,28 @@ describe("buildSelectableMessageIndex", () => {
 });
 
 describe("resolveSelectedMessages", () => {
+  it("exports original id-less messages and folded tool results", () => {
+    const assistant = testAssistantMessage({
+      id: undefined,
+      content: "",
+      tool_calls: [testToolCall({ id: "c-1", function: "bash" })],
+    });
+    const tool = testToolMessage({
+      id: undefined,
+      content: "ok",
+      tool_call_id: "c-1",
+    });
+    const messages = resolveSelectedMessages(
+      buildSelectableMessageIndex([assistant, tool]),
+      new Set(["msg-0"])
+    );
+    expect(messages).toEqual([assistant, tool]);
+    expect(messages[0]).toBe(assistant);
+    expect(messages[1]).toBe(tool);
+    expect(messages[0]?.id).toBeUndefined();
+    expect(messages[1]?.id).toBeUndefined();
+  });
+
   const index = buildSelectableMessageIndex(kitchenSink);
 
   it("returns the selected rows in chat order, heads with their tools", () => {
