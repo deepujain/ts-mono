@@ -50,10 +50,7 @@ export const LightboxCarousel: FC<LightboxCarouselProps> = ({ id, slides }) => {
   }, [setIsOpen]);
 
   // Remove the overlay after the fade-out; 300ms matches the CSS transition.
-  useTimeout(
-    () => setShowOverlay(false),
-    !isOpen && showOverlay ? 300 : null
-  );
+  useTimeout(() => setShowOverlay(false), !isOpen && showOverlay ? 300 : null);
 
   const showNext = useCallback(() => {
     setCurrentIndex((currentIndex + 1) % slides.length);

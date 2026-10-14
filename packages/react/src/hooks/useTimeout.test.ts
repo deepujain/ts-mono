@@ -70,5 +70,4 @@ describe("useTimeout", () => {
     expect(first).not.toHaveBeenCalled();
     expect(latest).toHaveBeenCalledTimes(1);
   });
-
 });
