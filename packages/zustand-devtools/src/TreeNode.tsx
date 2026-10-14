@@ -39,17 +39,19 @@ export const TreeNode: FC<TreeNodeProps> = memo(
     const [copied, setCopied] = useState(false);
     const expandable = isExpandable(value);
 
-    // Object.is matches effect dependency changes; !== retains the existing
-    // no-flash behavior for signed zeros. The previous effect flashed initial NaN.
-    const [flash, setFlash] = useState(() => ({
-      value,
-      key: typeof value === "number" && Number.isNaN(value) ? 1 : 0,
-    }));
-    let flashKey = flash.key;
+    // Remounting the value span (via key) restarts the flash animation; the
+    // reference comparison relies on immer structural sharing. Object.is
+    // guards the update (NaN !== NaN would loop); !== keeps 0 and -0, which
+    // render identically, from flashing. The value is wrapped because store
+    // values can be functions, which useState would call as initializers.
+    const [flash, setFlash] = useState({ value, key: 0 });
     if (!Object.is(flash.value, value)) {
-      flashKey += flash.value !== value ? 1 : 0;
-      setFlash({ value, key: flashKey });
+      setFlash({
+        value,
+        key: flash.value !== value ? flash.key + 1 : flash.key,
+      });
     }
+    const flashKey = flash.key;
 
     const toggle = () => {
       if (expandable) setExpanded((e) => !e);

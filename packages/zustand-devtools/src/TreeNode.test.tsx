@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { TreeNode } from "./TreeNode";
 import styles from "./TreeNode.module.css";
@@ -38,11 +38,10 @@ describe("TreeNode change animation", () => {
     expect(node().textContent).toBe("3");
   });
 
-  it("keeps the same value node for an unchanged reference", () => {
-    const value = { child: 1 };
-    const { node, update } = setup(value);
+  it("keeps the same value node when re-rendering an unchanged reference", () => {
+    const { node } = setup({ child: 1 });
     const first = node();
-    update(value);
+    fireEvent.click(screen.getByRole("button", { name: "value:" }));
     expect(node()).toBe(first);
     expect(node().classList.contains(styles.flash)).toBe(false);
   });
@@ -57,12 +56,8 @@ describe("TreeNode change animation", () => {
     expect(node().classList.contains(styles.flash)).toBe(false);
   });
 
-  it("preserves the initial NaN flash without repeating it", () => {
-    const { node, update } = setup(NaN);
-    const first = node();
-    expect(first.classList.contains(styles.flash)).toBe(true);
-    update(NaN);
-    expect(node()).toBe(first);
+  it("does not flash an initial NaN", () => {
+    expect(setup(NaN).node().classList.contains(styles.flash)).toBe(false);
   });
 
   it("restarts flash when entering or leaving NaN", () => {
@@ -77,16 +72,29 @@ describe("TreeNode change animation", () => {
     expect(node()).not.toBe(nan);
   });
 
+  it("flashes changed function values without calling them", () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const { node, update } = setup(first);
+    const initial = node();
+    update(second);
+    expect(node()).not.toBe(initial);
+    expect(node().classList.contains(styles.flash)).toBe(true);
+    expect(first).not.toHaveBeenCalled();
+    expect(second).not.toHaveBeenCalled();
+  });
+
   it("preserves expanded children while the parent value changes", () => {
-    const { update } = setup({ child: 1 });
+    const nested = { leaf: "unchanged" };
+    const { update } = setup({ nested, other: 1 });
     fireEvent.click(screen.getByRole("button", { name: "value:" }));
-    expect(screen.getByText("1")).toBeTruthy();
-    update({ child: 2 });
+    fireEvent.click(screen.getByRole("button", { name: "nested:" }));
+    update({ nested, other: 2 });
     expect(
       screen
-        .getByRole("button", { name: "value:" })
+        .getByRole("button", { name: "nested:" })
         .getAttribute("aria-expanded")
     ).toBe("true");
-    expect(screen.getByText("2")).toBeTruthy();
+    expect(screen.getByText('"unchanged"')).toBeTruthy();
   });
 });
