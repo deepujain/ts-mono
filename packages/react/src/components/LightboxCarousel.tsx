@@ -49,11 +49,10 @@ export const LightboxCarousel: FC<LightboxCarouselProps> = ({ id, slides }) => {
     setIsOpen(false);
   }, [setIsOpen]);
 
-  // Preserve the full fade-out delay when the property store or carousel id changes.
+  // Remove the overlay after the fade-out; 300ms matches the CSS transition.
   useTimeout(
     () => setShowOverlay(false),
-    !isOpen && showOverlay ? 300 : null,
-    setShowOverlay
+    !isOpen && showOverlay ? 300 : null
   );
 
   const showNext = useCallback(() => {

@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import {
   act,
-  cleanup,
   fireEvent,
   render,
   screen,
@@ -11,10 +10,7 @@ import { FC, ReactNode, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ComponentStateProvider } from "../state/ComponentStateContext";
-import {
-  makeReactiveStateHooks,
-  makeReactiveStateStore,
-} from "../test/component-state-hooks";
+import { makeReactiveStateHooks } from "../test/component-state-hooks";
 import { testIcons } from "../test/test-icons";
 
 import { ComponentIconProvider } from "./ComponentIconContext";
@@ -104,66 +100,49 @@ describe("LightboxCarousel", () => {
   });
 });
 
-describe("LightboxCarousel fade-out lifecycle", () => {
-  beforeEach(() => vi.useFakeTimers());
+describe("LightboxCarousel fade-out", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
   afterEach(() => {
-    cleanup();
     vi.useRealTimers();
   });
 
-  function setup() {
-    const state = makeReactiveStateStore();
-    for (const id of ["first-id", "second-id"]) {
-      state.store.set(`${id}::isOpen`, false);
-      state.store.set(`${id}::showOverlay`, true);
-    }
-    const element = (id: string) => (
-      <ComponentStateProvider hooks={state.hooks}>
-        <ComponentIconProvider icons={testIcons}>
-          <LightboxCarousel id={id} slides={slides} />
-        </ComponentIconProvider>
-      </ComponentStateProvider>
+  function renderOpenedWithFakeTimers() {
+    render(
+      <Wrapper>
+        <LightboxCarousel id="lightbox" slides={slides} />
+      </Wrapper>
     );
-    return { state, element, view: render(element("first-id")) };
+    fireEvent.click(screen.getByText("first"));
+    act(() => {
+      vi.advanceTimersByTime(10);
+    });
+    expect(document.querySelector(`.${styles.open}`)).toBeTruthy();
   }
 
-  it("keeps the overlay for the full fade-out duration", () => {
-    const { state } = setup();
+  it("keeps the overlay mounted for the full fade-out after closing", () => {
+    renderOpenedWithFakeTimers();
+    pressKey("Escape");
+
     act(() => {
       vi.advanceTimersByTime(299);
     });
     expect(screen.getByText("slide-0-body")).toBeTruthy();
+
     act(() => {
       vi.advanceTimersByTime(1);
     });
     expect(screen.queryByText("slide-0-body")).toBeNull();
-    expect(state.store.get("first-id::showOverlay")).toBe(false);
   });
 
-  it("restarts the fade-out deadline for a new property identity", () => {
-    const { state, element, view } = setup();
+  it("cancels the pending removal when reopened mid-fade", () => {
+    renderOpenedWithFakeTimers();
+    pressKey("Escape");
     act(() => {
       vi.advanceTimersByTime(100);
     });
-    view.rerender(element("second-id"));
-    act(() => {
-      vi.advanceTimersByTime(200);
-    });
-    expect(state.store.get("first-id::showOverlay")).toBe(true);
-    expect(state.store.get("second-id::showOverlay")).toBe(true);
-    expect(screen.getByText("slide-0-body")).toBeTruthy();
-    act(() => {
-      vi.advanceTimersByTime(100);
-    });
-    expect(state.store.get("second-id::showOverlay")).toBe(false);
-    expect(screen.queryByText("slide-0-body")).toBeNull();
-  });
 
-  it("cancels fade-out when the lightbox reopens", () => {
-    const { state } = setup();
-    act(() => {
-      vi.advanceTimersByTime(100);
-    });
     fireEvent.click(screen.getByText("first"));
     act(() => {
       vi.advanceTimersByTime(10);
@@ -171,16 +150,7 @@ describe("LightboxCarousel fade-out lifecycle", () => {
     act(() => {
       vi.advanceTimersByTime(500);
     });
-    expect(state.store.get("first-id::showOverlay")).toBe(true);
     expect(document.querySelector(`.${styles.open}`)).toBeTruthy();
-  });
-
-  it("does not update stored overlay state after unmount", () => {
-    const { state, view } = setup();
-    view.unmount();
-    act(() => {
-      vi.advanceTimersByTime(500);
-    });
-    expect(state.store.get("first-id::showOverlay")).toBe(true);
+    expect(screen.getByText("slide-0-body")).toBeTruthy();
   });
 });

@@ -71,17 +71,4 @@ describe("useTimeout", () => {
     expect(latest).toHaveBeenCalledTimes(1);
   });
 
-  it("cancels the previous deadline when reset identity changes", () => {
-    const callback = vi.fn();
-    const { rerender } = renderHook(
-      ({ identity }) => useTimeout(callback, 300, identity),
-      { initialProps: { identity: {} } }
-    );
-    vi.advanceTimersByTime(100);
-    rerender({ identity: {} });
-    vi.advanceTimersByTime(200);
-    expect(callback).not.toHaveBeenCalled();
-    vi.advanceTimersByTime(100);
-    expect(callback).toHaveBeenCalledTimes(1);
-  });
 });

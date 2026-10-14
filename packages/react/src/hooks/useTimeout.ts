@@ -5,17 +5,13 @@ import { useLatestRef } from "./useLatestRef";
 /**
  * Declarative `setTimeout`: calls the latest `callback` once, `delayMs`
  * milliseconds after mount. Pass `null` to cancel. Changing `delayMs`
- * restarts the timer. An optional `resetKey` also restarts it when its identity changes.
+ * restarts the timer.
  */
-export function useTimeout(
-  callback: () => void,
-  delayMs: number | null,
-  resetKey?: unknown
-): void {
+export function useTimeout(callback: () => void, delayMs: number | null): void {
   const callbackRef = useLatestRef(callback);
   useEffect(() => {
     if (delayMs === null) return;
     const id = window.setTimeout(() => callbackRef.current(), delayMs);
     return () => window.clearTimeout(id);
-  }, [delayMs, callbackRef, resetKey]);
+  }, [delayMs, callbackRef]);
 }
