@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { forwardRef, useCallback } from "react";
 
-import { ApplicationIcons } from "../appearance/icons";
+import { Icon } from "@tsmono/react/icons";
 
 import styles from "./ViewerOptionsButton.module.css";
 
@@ -26,24 +26,15 @@ export const ViewerOptionsButton = forwardRef<
         type="button"
         className={clsx(styles.button)}
         onClick={toggleShowing}
-        aria-label={
-          error
-            ? "Viewer information and options (listing refresh failed)"
-            : "Viewer information and options"
-        }
+        aria-label="Viewer information and options"
         title={
           error
-            ? `Viewer information and options: ${error.message}`
+            ? `Listing refresh failed: ${error.message}`
             : "Viewer information and options"
         }
       >
-        <i className={clsx(ApplicationIcons.info, styles.viewerOptions)} />
-        {error && (
-          <i
-            className={clsx(ApplicationIcons.error, styles.errorAdornment)}
-            aria-hidden="true"
-          />
-        )}
+        <Icon name="info" className={styles.viewerOptions} />
+        {error && <Icon name="error" className={styles.errorAdornment} />}
       </button>
     </div>
   );

@@ -17,7 +17,6 @@ import { setDocumentTitle } from "../../state/actions";
 import { useLogsListing } from "../../state/hooks";
 import { useStore } from "../../state/store";
 import { useUserSettings } from "../../state/userSettings";
-import { ApplicationIcons } from "../appearance/icons";
 import { FlowButton } from "../flow/FlowButton";
 import { useFlowQuery } from "../flow/hooks";
 import { ApplicationNavbar } from "../navbar/ApplicationNavbar";
@@ -302,7 +301,7 @@ export const LogsPanel: FC<LogsPanelProps> = ({
           <NavbarButton
             key="reset-filters"
             label="Reset Filters"
-            icon={ApplicationIcons.filter}
+            icon="filter"
             onClick={handleResetFilters}
           />
         )}
@@ -311,11 +310,7 @@ export const LogsPanel: FC<LogsPanelProps> = ({
           <NavbarButton
             key="show-retried"
             label="Show Retried Logs"
-            icon={
-              showRetriedLogs
-                ? ApplicationIcons.toggle.on
-                : ApplicationIcons.toggle.off
-            }
+            icon={showRetriedLogs ? "toggleOn" : "toggleOff"}
             latched={showRetriedLogs}
             subtle
             onClick={() => setShowRetriedLogs(!showRetriedLogs)}
@@ -326,7 +321,7 @@ export const LogsPanel: FC<LogsPanelProps> = ({
           key="choose-columns"
           ref={setColumnButtonEl}
           label="Columns"
-          icon={ApplicationIcons.columns}
+          icon="columns"
           dropdown
           subtle
           onClick={(e) => {
