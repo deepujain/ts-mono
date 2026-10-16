@@ -30,6 +30,7 @@ import {
 import { TranscriptVirtualList } from "./TranscriptVirtualList";
 import { findCollapsedAncestors, flatTree } from "./transform/flatten";
 import { pairToolApprovals } from "./transform/toolApprovals";
+import { pairToolSentinels } from "./transform/toolSentinels";
 import {
   anchorIndexForEvent,
   anchorIndexForTurn,
@@ -198,11 +199,24 @@ export const TranscriptViewNodes = forwardRef<
     () => pairToolApprovals(eventNodes),
     [eventNodes]
   );
+  const {
+    toolSentinels,
+    standaloneSentinels,
+    hiddenSentinelIds,
+    sentinelScrollRedirects,
+  } = useMemo(() => pairToolSentinels(eventNodes), [eventNodes]);
 
-  // Hidden approvals have no row of their own — retarget deep links at the
-  // tool row that renders them inline.
+  // Hidden approvals and sentinel events have no row of their own — retarget
+  // navigation at the row that renders them inline.
+  const redirectEventId = useCallback(
+    (eventId: string) =>
+      approvalScrollRedirects.get(eventId) ??
+      sentinelScrollRedirects.get(eventId) ??
+      eventId,
+    [approvalScrollRedirects, sentinelScrollRedirects]
+  );
   const scrollEventId = initialEventId
-    ? (approvalScrollRedirects.get(initialEventId) ?? initialEventId)
+    ? redirectEventId(initialEventId)
     : initialEventId;
 
   const flattenedNodes = useMemo(() => {
@@ -210,14 +224,27 @@ export const TranscriptViewNodes = forwardRef<
       eventNodes,
       collapsedTranscript || defaultCollapsedIds
     );
-    return hiddenApprovalIds.size === 0
+    return hiddenApprovalIds.size === 0 && hiddenSentinelIds.size === 0
       ? all
-      : all.filter((n) => !hiddenApprovalIds.has(n.id));
-  }, [eventNodes, collapsedTranscript, defaultCollapsedIds, hiddenApprovalIds]);
+      : all.filter(
+          (n) => !hiddenApprovalIds.has(n.id) && !hiddenSentinelIds.has(n.id)
+        );
+  }, [
+    eventNodes,
+    collapsedTranscript,
+    defaultCollapsedIds,
+    hiddenApprovalIds,
+    hiddenSentinelIds,
+  ]);
 
   const mergedEventNodeContext = useMemo<Partial<EventNodeContext>>(
-    () => ({ ...eventNodeContext, toolApprovals }),
-    [eventNodeContext, toolApprovals]
+    () => ({
+      ...eventNodeContext,
+      toolApprovals,
+      toolSentinels,
+      standaloneSentinels,
+    }),
+    [eventNodeContext, toolApprovals, toolSentinels, standaloneSentinels]
   );
 
   // Bails out of React Compiler (checked with SWC): the row toggle keeps a
@@ -261,19 +288,11 @@ export const TranscriptViewNodes = forwardRef<
     };
   }, [eventNodes, flattenedNodes, defaultCollapsedIds]);
 
-  const flattenedNodesLatest = useRef<EventNode[]>(flattenedNodes);
-  // eslint-disable-next-line tsmono/no-raw-use-effect -- baselined at rule introduction; migrate to a named hook or derived state
-  useEffect(() => {
-    flattenedNodesLatest.current = flattenedNodes;
-  }, [flattenedNodes]);
+  const flattenedNodesLatest = useLatestRef<EventNode[]>(flattenedNodes);
 
   // Latest turn lookup for scrollRowToTop's stamp: an expansion retry lands
   // after the turn map is recomputed, so closed-over values may be stale.
-  const turnLookupLatest = useRef({ turnAnchorIds, computedTurnMap });
-  // eslint-disable-next-line tsmono/no-raw-use-effect -- baselined at rule introduction; migrate to a named hook or derived state
-  useEffect(() => {
-    turnLookupLatest.current = { turnAnchorIds, computedTurnMap };
-  }, [turnAnchorIds, computedTurnMap]);
+  const turnLookupLatest = useLatestRef({ turnAnchorIds, computedTurnMap });
 
   // The turn at the top of the viewport (tracked by useScrollTrack below);
   // seeded from the deep-link target so a keypress can't race the tracker's
@@ -318,11 +337,12 @@ export const TranscriptViewNodes = forwardRef<
         onDone,
       });
     },
-    [onProgrammaticScroll]
+    [onProgrammaticScroll, flattenedNodesLatest, turnLookupLatest]
   );
 
   const scrollToEvent = useCallback(
-    (eventId: string) => {
+    (targetId: string) => {
+      const eventId = redirectEventId(targetId);
       // Imperative jumps are navigation too: collapse the chrome even when
       // the URL doesn't change (re-click) and the deep-link effect won't run.
       onHeadroomSetHidden?.(true);
@@ -380,6 +400,7 @@ export const TranscriptViewNodes = forwardRef<
       el?.scrollIntoView({ block: "start", behavior: "auto" });
     },
     [
+      redirectEventId,
       flattenedNodes,
       eventNodes,
       collapsedTranscript,
@@ -389,6 +410,7 @@ export const TranscriptViewNodes = forwardRef<
       scrollRef,
       onProgrammaticScroll,
       onHeadroomSetHidden,
+      flattenedNodesLatest,
     ]
   );
 
@@ -404,7 +426,7 @@ export const TranscriptViewNodes = forwardRef<
       getFlattenedNodes: () => flattenedNodesLatest.current,
       getVisibleRange: () => visibleRangeRef.current,
     }),
-    [scrollToEvent]
+    [scrollToEvent, flattenedNodesLatest]
   );
 
   // Expand a deep-link target's collapsed ancestors, once per target so a
@@ -551,7 +573,13 @@ export const TranscriptViewNodes = forwardRef<
         onNavigatedToEvent(anchorId);
       }
     },
-    [turnAnchorIds, scrollRowToTop, onNavigatedToEvent, onHeadroomSetHidden]
+    [
+      turnAnchorIds,
+      scrollRowToTop,
+      onNavigatedToEvent,
+      onHeadroomSetHidden,
+      flattenedNodesLatest,
+    ]
   );
 
   // `k` past turn 1: return to the very top of the transcript (the pre-turn
@@ -650,7 +678,7 @@ export const TranscriptViewNodes = forwardRef<
       );
       if (idx !== -1) scrollRowToTop(idx);
     },
-    [scrollRowToTop]
+    [scrollRowToTop, flattenedNodesLatest]
   );
 
   // Last-known selected tab per anchor panel, reported by EventPanel, so the

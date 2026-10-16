@@ -9,27 +9,24 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@vscode/codicons/dist/codicon.css";
 
-import { createContext, FC, useEffect, useLayoutEffect, useMemo } from "react";
+import { createContext, FC, useLayoutEffect, useMemo } from "react";
 import { RouterProvider } from "react-router/dom";
 
-import "prismjs";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-clike";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-python";
 import "prismjs/themes/prism.css";
 import "@tsmono/theme/base";
 import "@tsmono/theme/vscode";
 import "./app/App.css";
 
+import { trustContentSetting } from "@tsmono/inspect-components/content";
 import {
   AppErrorBoundary,
   ComponentIconProvider,
   ComponentIcons,
+  ContentTrustCeilingProvider,
   ExtendedFindProvider,
   FindTargetProvider,
 } from "@tsmono/react/components";
+import { useEventListener } from "@tsmono/react/hooks";
 import { ComponentStateProvider } from "@tsmono/react/state";
 
 import { useAppConfigAsync } from "./app/server/useAppConfig";
@@ -85,22 +82,20 @@ const useThemePreferenceSync = () => {
   // Cross-tab: zustand persist doesn't subscribe to `storage` events, so
   // another tab's write would leave this tab stale. Re-apply CSS (the bootstrap
   // reads the freshly-written value) and pull the new preference into zustand.
-  // eslint-disable-next-line tsmono/no-raw-use-effect -- baselined at rule introduction; migrate to a named hook or derived state
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === SETTINGS_STORAGE_KEY) {
-        window.__APPLY_BROWSER_THEME__?.();
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        useUserSettings.persist.rehydrate();
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+  useEventListener(window, "storage", (e) => {
+    if (e.key === SETTINGS_STORAGE_KEY) {
+      window.__APPLY_BROWSER_THEME__?.();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      useUserSettings.persist.rehydrate();
+    }
+  });
 };
 
 const AppContent: FC<AppProps> = ({ mode = "scans" }) => {
   const router = useAppRouter(mode);
+  const trustCeiling = trustContentSetting(
+    useAppConfigAsync().data?.trust_content
+  );
 
   return router ? (
     <AppErrorBoundary>
@@ -109,7 +104,12 @@ const AppContent: FC<AppProps> = ({ mode = "scans" }) => {
           <AppModeContext.Provider value={mode}>
             <ExtendedFindProvider>
               <FindTargetProvider>
-                <RouterProvider router={router} />
+                {/* Content is untrusted unless a nearer provider says otherwise
+                    (a transcript's own trust, or app-owned data); the key
+                    remounts everything when the ceiling changes. */}
+                <ContentTrustCeilingProvider value={trustCeiling}>
+                  <RouterProvider key={trustCeiling} router={router} />
+                </ContentTrustCeilingProvider>
               </FindTargetProvider>
             </ExtendedFindProvider>
           </AppModeContext.Provider>

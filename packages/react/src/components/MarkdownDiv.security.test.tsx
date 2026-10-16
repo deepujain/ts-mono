@@ -1,9 +1,16 @@
 // @vitest-environment jsdom
-import { render, waitFor } from "@testing-library/react";
+import { render as renderUi, waitFor } from "@testing-library/react";
+import { ReactElement } from "react";
 import { beforeAll, describe, expect, it } from "vitest";
+
+import { TrustedContentWrapper } from "../test/content-trust";
 
 import { MarkdownDiv } from "./MarkdownDiv";
 import { renderMarkdown } from "./markdownRendering";
+
+// These tests exercise the rich rendering path, which needs trusted content.
+const render = (ui: ReactElement) =>
+  renderUi(ui, { wrapper: TrustedContentWrapper });
 
 describe("MarkdownDiv rendered HTML sanitization", () => {
   // Pay the one-time lazy import of markdown-it-mathjax3 up front; on slow CI
@@ -20,7 +27,7 @@ describe("MarkdownDiv rendered HTML sanitization", () => {
       expect(container.querySelector("mjx-container")).not.toBeNull();
     });
 
-    expect(container.querySelector('span[id^="mjx-"] > style')).not.toBeNull();
+    expect(container.querySelector("style")).toBeNull();
     expect(container.querySelector("animate")).toBeNull();
     expect(container.querySelector("[onbegin]")).toBeNull();
     expect(container.innerHTML).not.toContain("onbegin");

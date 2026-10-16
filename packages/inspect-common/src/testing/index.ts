@@ -32,6 +32,7 @@ import type {
   InputEvent,
   InterruptEvent,
   LoggerEvent,
+  ModelCall,
   ModelConfig,
   ModelEvent,
   ModelOutput,
@@ -44,6 +45,7 @@ import type {
   ScoreEdit,
   ScoreEditEvent,
   ScoreEvent,
+  SentinelEvent,
   SpanBeginEvent,
   SpanEndEvent,
   StateEvent,
@@ -131,6 +133,13 @@ export const testToolCall = (overrides: Partial<ToolCall> = {}): ToolCall => ({
   function: "test_tool",
   arguments: {},
   type: "function",
+  ...overrides,
+});
+
+export const testModelCall = (
+  overrides: Partial<ModelCall> = {}
+): ModelCall => ({
+  request: {},
   ...overrides,
 });
 
@@ -402,6 +411,26 @@ export const testReviewEvent = (
   call: testToolCall(),
   decision: "continue",
   message: "",
+  ...overrides,
+});
+
+export const testSentinelEvent = (
+  overrides: Partial<SentinelEvent> = {}
+): SentinelEvent => ({
+  event: "sentinel",
+  timestamp: TEST_TIMESTAMP,
+  working_start: 0,
+  factory: "test-protocol",
+  path: "",
+  function: "test_protocol",
+  step_id: "call_1",
+  conversation: "conversation_1",
+  stage: "tool_call",
+  kind: "decision",
+  status: "reported",
+  action: "proceed",
+  audit: false,
+  references: [],
   ...overrides,
 });
 

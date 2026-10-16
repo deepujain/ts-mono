@@ -13,6 +13,7 @@ import {
 } from "../../tooling/python-repo/index.js";
 import {
   inlineThemeBootstrap,
+  inlineWorkerUrls,
   rewriteLoopbackOrigin,
 } from "../../tooling/vite-plugins/index.js";
 
@@ -65,6 +66,7 @@ export default defineConfig(({ mode }) => {
       ...baseConfig,
       plugins: [
         ...baseConfig.plugins,
+        inlineWorkerUrls(),
         dts({
           insertTypesEntry: true,
           exclude: ["**/*.test.ts", "**/*.test.tsx", "src/tests/**/*"],
@@ -96,10 +98,7 @@ export default defineConfig(({ mode }) => {
           external: (id: string) =>
             /^(react|react-dom|@tanstack\/react-query|use-sync-external-store)(\/|$)/.test(
               id
-            ) ||
-            id === "mathjax-full" ||
-            id.startsWith("mathjax-full/") ||
-            id === "markdown-it-mathjax3",
+            ) || id === "markdown-it-mathjax3",
           output: {
             globals: {
               react: "React",
@@ -133,7 +132,7 @@ export default defineConfig(({ mode }) => {
       base: "",
       server: {
         // Pinned so `pnpm dev` from the root always gives scout 5174 and
-        // inspect 5173 regardless of startup order (e2e uses 5175/5176).
+        // inspect 5173 regardless of startup order (e2e uses 5175–5177).
         port: 5174,
         strictPort: true,
         proxy: {

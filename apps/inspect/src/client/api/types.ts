@@ -37,6 +37,7 @@ import type {
   SearchInputListResponse,
   SearchRequest,
   SearchResponse,
+  SentinelEvent,
   StateEvent,
   StepEvent,
   StoreEvent,
@@ -183,6 +184,7 @@ export interface EventData {
     | ToolEvent
     | ApprovalEvent
     | ReviewEvent
+    | SentinelEvent
     | InputEvent
     | ScoreEvent
     | ErrorEvent
@@ -476,8 +478,7 @@ export interface LogPreview {
 
 /**
  * The stored/cached form of one log's content: the details payload minus its
- * sample summaries (those are their own store — see
- * design/migration/log-data-summaries-entity.md), plus facts about the log's
+ * sample summaries (those are their own store), plus facts about the log's
  * samples derived once at ingestion. Deriving at write time is what keeps
  * whole-dir summary scans off every read path — these facts are listing
  * columns (Sample Errors / Sample Limits) and the zero-samples check.
@@ -527,6 +528,9 @@ export interface LogDerived {
 export interface SampleDerived {
   /** Total tokens summed across all models. */
   tokens?: number;
+  /** Total cost in dollars; undefined when any model that used tokens was
+   *  unpriced. */
+  cost?: number;
   /** Input as displayable/filterable text. */
   input: string;
   /** Target as displayable/filterable text. */
@@ -540,8 +544,7 @@ export interface SampleDerived {
 /**
  * The Log entity row — identity plus header attributes at progressive
  * depth, plus retrieval facts. The one shape the store, the cache, and the
- * listing share (see design/migration/log-data-summaries-entity.md, phase
- * 3). Flat attribute columns arrive at `previewed` depth and are refreshed
+ * listing share. Flat attribute columns arrive at `previewed` depth and are refreshed
  * at `detailed`; `header` is the deep form.
  */
 export interface Log extends LogHandle {

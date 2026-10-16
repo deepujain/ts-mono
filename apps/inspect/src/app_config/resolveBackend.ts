@@ -27,6 +27,7 @@ interface LogDirContext {
   log_file?: string;
   abs_log_dir?: string;
   inspect_version?: string;
+  trust_content?: boolean | null;
 }
 
 /** Transport facts knowable before any api instance exists — what the store
@@ -56,12 +57,12 @@ export interface BackendBootstrap {
   capabilities: BackendCapabilities;
   /** Whether the browser itself fetches from the log location (static-http)
    *  rather than a server or host proxy that applies its own trust policy.
-   *  Only then does a location named by the page URL or a route need the
-   *  viewer's own approval (#615). */
+   *  Only then does the viewer itself refuse a location on another origin
+   *  named by the page URL or a route (#615). */
   browserDirect: boolean;
   /** Set when a `?log_dir=` in the invocation chose this backend's dir. Absent
    *  when embedded config or a host fixed it: the param is then ignored, so a
-   *  location it names is never fetched and there is nothing to approve. */
+   *  location it names is never fetched and there is nothing to refuse. */
   dirFromUrl?: true;
 }
 
@@ -218,10 +219,11 @@ export const resolveBackend = (source: UrlLogSource): BackendBootstrap => {
       if (data.log_dir || data.log_file) {
         const log_dir = data.log_dir || dirname(data.log_file ?? "");
         const app_config: AppConfig | undefined =
-          data.inspect_version !== undefined
+          data.inspect_version !== undefined || data.trust_content !== undefined
             ? {
-                inspect_version: data.inspect_version,
+                inspect_version: data.inspect_version ?? "unknown",
                 scout_version: null,
+                trust_content: data.trust_content,
               }
             : undefined;
         return staticBackend(log_dir, data.abs_log_dir, app_config);
