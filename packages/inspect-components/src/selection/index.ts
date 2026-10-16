@@ -1,14 +1,11 @@
-// Evidence selection shared by the transcript and chat lists: the state and
-// its range toggle, the row checkbox and contexts, and the toolbar tool.
+// Evidence selection shared by the transcript and chat lists. Hosts use the
+// adapter type, the resolvers, the menu chrome and the toolbar tool; the
+// lists use the rest of the module directly.
 export {
-  kEmptyRowSelection,
   resolveSelected,
   resolveSelectedIds,
   selectionMenuChrome,
-  toggleRowSelection,
   type RowSelection,
-  type RowSelectionState,
   type SelectableItem,
 } from "./rowSelection";
 export { SelectTool } from "./SelectTool";
-export { useRowSelection } from "./useRowSelection";

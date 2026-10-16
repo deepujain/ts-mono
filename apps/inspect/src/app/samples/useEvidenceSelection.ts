@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-
 import type { ChatMessage } from "@tsmono/inspect-common/types";
 import {
   buildSelectableMessageIndex,
@@ -79,19 +77,14 @@ export const useEvidenceSelection = ({
 
   const current = item !== undefined && stored.key === key ? stored : undefined;
   const active = current?.active ?? false;
-  // Identity feeds the list's row contexts, so it changes only with the store.
-  const listSelection = useMemo<RowSelection | undefined>(
-    () =>
-      current?.active
-        ? {
-            selectedIds: new Set(current.selectedIds),
-            lastToggledId: current.lastToggledId,
-            onChange: (next) =>
-              setSelection(key, [...next.selectedIds], next.lastToggledId),
-          }
-        : undefined,
-    [current, key, setSelection]
-  );
+  const listSelection: RowSelection | undefined = current?.active
+    ? {
+        selectedIds: new Set(current.selectedIds),
+        lastToggledId: current.lastToggledId,
+        onChange: (next) =>
+          setSelection(key, [...next.selectedIds], next.lastToggledId),
+      }
+    : undefined;
   const selectedIds = listSelection?.selectedIds;
   const count = selectedIds?.size ?? 0;
 

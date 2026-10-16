@@ -59,10 +59,14 @@ async function openSample(
   );
 }
 
-test("legacy message selection exports original objects with folded tool results", async ({
+test("legacy message selection prints and exports original objects with folded tool results", async ({
   page,
+  context,
   network,
 }, testInfo) => {
+  await context.addInitScript(() => {
+    window.print = () => undefined;
+  });
   const messages: ChatMessage[] = [
     { role: "user", content: "Run the command" },
     {
@@ -91,7 +95,16 @@ test("legacy message selection exports original objects with folded tool results
   await boxes.nth(0).click();
   await boxes.nth(1).click({ modifiers: ["Shift"] });
   await expect(page.getByRole("button", { name: /Select · 2$/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Print · 2$/ })).toBeVisible();
+  const popup = page.waitForEvent("popup");
+  await page.getByRole("button", { name: /Print · 2$/ }).click();
+  const printPage = await popup;
+  // Two rows selected: the header counts rows, not their folded tool messages.
+  await expect(printPage.getByText(/· 2 selected messages$/)).toBeVisible();
+  await expect(
+    printPage.getByText("Run the command", { exact: true })
+  ).toBeVisible();
+  await expect(printPage.getByText("Done", { exact: true })).toHaveCount(0);
+  await printPage.close();
   await page.getByRole("button", { name: "Download", exact: true }).click();
   const downloaded = page.waitForEvent("download");
   await page.getByRole("button", { name: "JSON", exact: true }).click();

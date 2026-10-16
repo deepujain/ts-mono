@@ -90,27 +90,22 @@ const SamplePrintViewContent: FC = () => {
   const listHandle = useRef<VirtualListHandle | null>(null);
 
   // Messages: restrict to the selected rows when `messages=<id>` params are
-  // present, resolving against the same fold the Messages tab uses. The
-  // `?? []` fallback is a fresh array each render, so it gets its own memo
-  // to keep the print memo's dependencies stable.
-  const sampleMessages = useMemo(
-    () => sample?.messages ?? [],
-    [sample?.messages]
-  );
-  const printMessages = useMemo(() => {
-    const ids = searchParams.getAll("messages");
-    return ids.length > 0
+  // present, resolving against the same fold the Messages tab uses. A row is
+  // a head message plus its folded tool messages, so the header counts rows.
+  const sampleMessages = sample?.messages ?? [];
+  const messageIds = searchParams.getAll("messages");
+  const selectedMessageRows =
+    messageIds.length > 0
       ? resolveSelected(
           buildSelectableMessageIndex(sampleMessages),
-          new Set(ids)
-        ).flat()
-      : sampleMessages;
-  }, [sampleMessages, searchParams]);
+          new Set(messageIds)
+        )
+      : undefined;
+  const printMessages = selectedMessageRows?.flat() ?? sampleMessages;
   const messageSelectionNotFound =
-    searchParams.has("messages") &&
-    view === kSampleMessagesTabId &&
+    printingMessageSelection &&
     sampleMessages.length > 0 &&
-    printMessages.length === 0;
+    selectedMessageRows?.length === 0;
 
   // Auto-print once content has finished rendering.
   // Uses a MutationObserver to detect when the DOM stops changing,
@@ -178,8 +173,8 @@ const SamplePrintViewContent: FC = () => {
             {printingSelection
               ? ` · ${flattenedNodes.length} selected ${flattenedNodes.length === 1 ? "event" : "events"}`
               : null}
-            {printingMessageSelection
-              ? ` · ${printMessages.length} selected ${printMessages.length === 1 ? "message" : "messages"}`
+            {printingMessageSelection && selectedMessageRows
+              ? ` · ${selectedMessageRows.length} selected ${selectedMessageRows.length === 1 ? "message" : "messages"}`
               : null}
           </div>
         )}
