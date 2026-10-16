@@ -67,8 +67,8 @@
 //                 against the known one, re-acquire what changed.
 //                 Subscriber-driven: mounting useLogsSync is what keeps a
 //                 dir fresh; its `scope` keys a panel's subscription so
-//                 navigating re-syncs. ListingStatus (busy, error) is its
-//                 one progress signal.
+//                 navigating re-syncs. ListingStatus (busy, error,
+//                 refreshError) is its one progress signal.
 // - invalidate    Force a fresh read so mounted subscribers pick it up.
 //                 Fire-and-forget: consequences are observed through the
 //                 hooks, never awaited. Both imperative freshness verbs are

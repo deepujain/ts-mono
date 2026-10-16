@@ -53,8 +53,13 @@ export interface ListingStatus {
    *  background. For subordinate indications (footer "Syncing data" text,
    *  empty-grid overlays). */
   busy: boolean;
-  /** The listing sync failed. */
+  /** The listing sync failed before ever succeeding for this scope, so
+   *  there is no synced listing to show. */
   error: Error | undefined;
+  /** A re-sync failed after an earlier one succeeded. The synced listing is
+   *  still valid, just possibly stale; the next poll-driven re-sync retries
+   *  and clears this on success. */
+  refreshError: Error | undefined;
 }
 
 /**
@@ -94,14 +99,15 @@ export const useLogsSync = (logDir: string, scope: string): ListingStatus => {
     refetchOnReconnect: false,
   });
   const { syncing } = useFetchEngineStatus();
-  const { isFetching, isPending, error } = sync;
+  const { isFetching, isPending, isRefetchError, error } = sync;
   return useMemo(
     () => ({
       loading: isFetching,
       busy: isPending || syncing,
-      error: error ?? undefined,
+      error: isRefetchError ? undefined : (error ?? undefined),
+      refreshError: isRefetchError ? error : undefined,
     }),
-    [isFetching, isPending, error, syncing]
+    [isFetching, isPending, isRefetchError, error, syncing]
   );
 };
 

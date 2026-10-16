@@ -68,14 +68,7 @@ export const ViewerOptionsPopover: FC<ViewerOptionsPopoverProps> = ({
             >
               Background Sync
             </div>
-            <div
-              className={clsx(
-                styles.fullWidth,
-                styles.message,
-                styles.messageError
-              )}
-              role="alert"
-            >
+            <div className={clsx(styles.fullWidth, styles.syncError)}>
               {error.message}
             </div>
             <div className={clsx(styles.spacer)}></div>

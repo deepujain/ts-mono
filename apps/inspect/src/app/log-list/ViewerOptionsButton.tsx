@@ -26,6 +26,11 @@ export const ViewerOptionsButton = forwardRef<
         type="button"
         className={clsx(styles.button)}
         onClick={toggleShowing}
+        aria-label={
+          error
+            ? "Viewer information and options (listing refresh failed)"
+            : "Viewer information and options"
+        }
         title={
           error
             ? `Viewer information and options: ${error.message}`
