@@ -32,6 +32,7 @@ import type {
   InputEvent,
   InterruptEvent,
   LoggerEvent,
+  ModelCall,
   ModelConfig,
   ModelEvent,
   ModelOutput,
@@ -132,6 +133,13 @@ export const testToolCall = (overrides: Partial<ToolCall> = {}): ToolCall => ({
   function: "test_tool",
   arguments: {},
   type: "function",
+  ...overrides,
+});
+
+export const testModelCall = (
+  overrides: Partial<ModelCall> = {}
+): ModelCall => ({
+  request: {},
   ...overrides,
 });
 
@@ -420,7 +428,7 @@ export const testSentinelEvent = (
   stage: "tool_call",
   kind: "decision",
   status: "reported",
-  action: "continue",
+  action: "proceed",
   audit: false,
   references: [],
   ...overrides,

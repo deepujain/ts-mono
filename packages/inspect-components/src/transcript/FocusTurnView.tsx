@@ -14,6 +14,7 @@ import {
   PopOver,
   StickyScrollProvider,
 } from "@tsmono/react/components";
+import { useEventListener } from "@tsmono/react/hooks";
 import { isEditableTarget } from "@tsmono/util";
 
 import styles from "./FocusTurnView.module.css";
@@ -113,27 +114,21 @@ export const FocusTurnView: FC<FocusTurnViewProps> = ({
   }, [onExit]);
 
   // Esc/f exit focus mode (f mirrors the transcript's enter-focus binding); lane picker claims both keys first, and typing targets are ignored. `f` ignores modifiers so Cmd+F find is intact.
-  // eslint-disable-next-line tsmono/no-raw-use-effect -- baselined at rule introduction; migrate to a named hook or derived state
-  useEffect(() => {
-    if (!handleExit) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      // Exact-case `f`, matching the transcript's enter-focus binding — so
-      // Shift+F/Caps Lock neither enters nor exits, never just one of the two.
-      const isExitKey =
-        e.key === "Escape" ||
-        (e.key === "f" && !e.metaKey && !e.ctrlKey && !e.altKey);
-      if (!isExitKey) return;
-      if (isEditableTarget(document.activeElement)) return;
-      e.preventDefault();
-      if (laneMenuOpen) {
-        setLaneMenuOpen(false);
-        return;
-      }
-      handleExit();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [handleExit, laneMenuOpen]);
+  useEventListener(handleExit ? document : null, "keydown", (e) => {
+    // Exact-case `f`, matching the transcript's enter-focus binding — so
+    // Shift+F/Caps Lock neither enters nor exits, never just one of the two.
+    const isExitKey =
+      e.key === "Escape" ||
+      (e.key === "f" && !e.metaKey && !e.ctrlKey && !e.altKey);
+    if (!isExitKey) return;
+    if (isEditableTarget(document.activeElement)) return;
+    e.preventDefault();
+    if (laneMenuOpen) {
+      setLaneMenuOpen(false);
+      return;
+    }
+    handleExit?.();
+  });
 
   // Reset scroll to the top of each newly focused turn. The slice changes on
   // j/k but the scroll container keeps its previous offset, so a tall turn
@@ -314,8 +309,14 @@ export const FocusTurnView: FC<FocusTurnViewProps> = ({
             eventCallbacks={eventCallbacks}
             // Slice starts at the focused model, so the per-node back-scan would
             // compute hasToolEvents=false and the model would inline + expand its
-            // input tool messages. Force true so it renders the compact summary.
-            eventNodeContext={{ hasToolEvents: true, ...checks }}
+            // input tool messages. Force true so it renders the compact summary;
+            // the slice also lacks the tool events that showed those messages, so
+            // per-call coverage is turned off too.
+            eventNodeContext={{
+              hasToolEvents: true,
+              ...checks,
+              toolEventIds: undefined,
+            }}
           />
         </StickyScrollProvider>
       </div>

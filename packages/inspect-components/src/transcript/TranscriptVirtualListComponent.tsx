@@ -26,7 +26,10 @@ import {
 
 import { EventLabelContext } from "./EventLabelContext";
 import { eventSearchText } from "./eventText";
-import { computeHasToolEventsAtDepth } from "./hasToolEventsAtDepth";
+import {
+  computeHasToolEventsAtDepth,
+  computeToolEventIdsAtLevel,
+} from "./hasToolEventsAtDepth";
 import { isSelectableEvent } from "./selection/transcriptSelection";
 import { RenderedEventNode } from "./TranscriptVirtualList";
 import styles from "./TranscriptVirtualListComponent.module.css";
@@ -131,6 +134,10 @@ export const TranscriptVirtualListComponent: FC<
     () => computeHasToolEventsAtDepth(eventNodes),
     [eventNodes]
   );
+  const toolEventIdsLookup = useMemo(
+    () => computeToolEventIdsAtLevel(eventNodes),
+    [eventNodes]
+  );
 
   // Non-virtual scroll-into-view for initial event
   const nonVirtualGridRef = useRef<HTMLDivElement | null>(null);
@@ -162,6 +169,7 @@ export const TranscriptVirtualListComponent: FC<
         turnInfo !== undefined && turnInfo.turnNumber !== prevTurnNumber;
       map.set(node.id, {
         hasToolEvents,
+        toolEventIds: toolEventIdsLookup[i],
         turnInfo,
         turnIsAnchor,
         ...eventNodeContext,
@@ -171,7 +179,13 @@ export const TranscriptVirtualListComponent: FC<
       prevTurnNumber = turnInfo?.turnNumber;
     }
     return map;
-  }, [eventNodes, hasToolEventsLookup, turnMap, eventNodeContext]);
+  }, [
+    eventNodes,
+    hasToolEventsLookup,
+    toolEventIdsLookup,
+    turnMap,
+    eventNodeContext,
+  ]);
 
   const eventLabels = eventNodeContext?.eventLabels;
 
