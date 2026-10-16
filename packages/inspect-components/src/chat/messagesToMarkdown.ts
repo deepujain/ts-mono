@@ -6,6 +6,8 @@ import type {
   ContentToolUse,
 } from "@tsmono/inspect-common/types";
 
+import { fenced } from "../content/markdownCode";
+
 /**
  * Converts selected messages to a Markdown document suitable for reports
  * and other review artifacts. One section per message, titled by role;
@@ -90,20 +92,4 @@ const toolUseMarkdown = (item: ContentToolUse): string => {
   const invocation = `${item.name}(${item.arguments}) -> ${item.result}`;
   const withError = item.error ? `${invocation}\n${item.error}` : invocation;
   return `**Tool use: ${item.name}**\n\n${fenced(withError)}`;
-};
-
-// The fence must be longer than any backtick run inside the value.
-const fenced = (value: string): string => {
-  const fence = "`".repeat(Math.max(2, longestBacktickRun(value)) + 1);
-  return `${fence}\n${value}\n${fence}`;
-};
-
-const longestBacktickRun = (value: string): number => {
-  let longest = 0;
-  let run = 0;
-  for (const char of value) {
-    run = char === "`" ? run + 1 : 0;
-    longest = Math.max(longest, run);
-  }
-  return longest;
 };
