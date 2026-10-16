@@ -50,11 +50,19 @@
   color: #721c24;
 }
 
-.syncError {
-  padding: 4px 8px;
+.syncErrorIcon {
+  color: var(--bs-danger);
+  margin-right: 0.4em;
+}
+
+.syncErrorDetail {
+  margin-top: 0.25em;
+  padding: 2px 6px;
   border-radius: 4px;
-  background-color: var(--bs-danger-bg-subtle);
-  color: var(--bs-danger-text-emphasis);
-  border: 1px solid var(--bs-danger-border-subtle);
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--bs-secondary-color);
+  background-color: var(--bs-tertiary-bg);
+  border: 1px solid var(--bs-light-border-subtle);
   overflow-wrap: anywhere;
 }

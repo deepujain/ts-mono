@@ -153,6 +153,9 @@ test.describe("Server error state", () => {
     await expect(page.locator("[data-testid='error-panel']")).toHaveCount(0);
 
     await options.click();
+    await expect(
+      page.getByText(/Couldn't refresh\. Showing results from \d{1,2}:\d{2}/)
+    ).toBeVisible();
     await expect(page.getByText("Refresh failed")).toBeVisible();
 
     // The next successful re-sync clears the flag and keeps the rows.

@@ -7,11 +7,17 @@ import { DbStats, fetchEngine, FetchEngineStatus } from "./fetchEngine";
  * stats), read reactively from the engine's own external store — it's
  * high-frequency ephemeral service status, not UI state or fetched server
  * data, so neither zustand nor react-query is involved. Subsystem-private:
- * `syncing` feeds `useLogsSync`'s busy signal and `lastSyncedAt` its
- * error/refreshError split; `dbStats` feeds `useDatabaseStats`.
+ * `syncing` feeds `useLogsSync`'s busy signal; `lastSyncedAt` feeds its
+ * error/refreshError split and `useLastSyncedAt`; `dbStats` feeds
+ * `useDatabaseStats`.
  */
 export const useFetchEngineStatus = (): FetchEngineStatus =>
   useSyncExternalStore(fetchEngine.subscribeStatus, fetchEngine.getStatus);
 
 /** The local log database's row counts (viewer options popover). */
 export const useDatabaseStats = (): DbStats => useFetchEngineStatus().dbStats;
+
+/** When the active log dir's listing last synced this session (viewer
+ *  options popover's refresh-failure note). */
+export const useLastSyncedAt = (): number | undefined =>
+  useFetchEngineStatus().lastSyncedAt;

@@ -151,7 +151,7 @@ export { useChunkedSample, type ChunkedSampleData } from "./chunkedSampleQuery";
 export { useSampleSummaries } from "./sampleSummaries";
 export { type ScorerMap, scorerMetricKey, useScoreSchema } from "./scoreSchema";
 export { FetchEngineController } from "./FetchEngineController";
-export { useDatabaseStats } from "./useFetchEngineStatus";
+export { useDatabaseStats, useLastSyncedAt } from "./useFetchEngineStatus";
 export { useLogsSync } from "./useLogsSync";
 // Test teardown only: tests reuse one module instance across cases, so they
 // release the shared database handle between them. The app never does.
