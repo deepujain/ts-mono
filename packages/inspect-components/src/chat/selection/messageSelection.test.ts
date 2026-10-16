@@ -7,14 +7,20 @@ import {
   testToolMessage,
   testUserMessage,
 } from "@tsmono/inspect-common/testing";
-
-import { kitchenSink } from "../testFixtures";
+import type { ChatMessage } from "@tsmono/inspect-common/types";
 
 import {
-  buildSelectableMessageIndex,
-  resolveSelectedMessageIds,
-  resolveSelectedMessages,
-} from "./messageSelection";
+  resolveSelected,
+  resolveSelectedIds,
+} from "../../selection/rowSelection";
+import { kitchenSink } from "../testFixtures";
+
+import { buildSelectableMessageIndex } from "./messageSelection";
+
+const resolveSelectedMessages = (
+  index: ReadonlyMap<string, ChatMessage[]>,
+  selectedIds: ReadonlySet<string>
+) => resolveSelected(index, selectedIds).flat();
 
 describe("buildSelectableMessageIndex", () => {
   it("keys every rendered row by message id, system row first", () => {
@@ -113,12 +119,12 @@ describe("resolveSelectedMessages", () => {
   });
 });
 
-describe("resolveSelectedMessageIds", () => {
+describe("resolveSelectedIds over messages", () => {
   const index = buildSelectableMessageIndex(kitchenSink);
 
   it("returns the resolving ids in chat order, ignoring unknown ids", () => {
     expect(
-      resolveSelectedMessageIds(index, new Set(["msg-11", "nope", "msg-1"]))
+      resolveSelectedIds(index, new Set(["msg-11", "nope", "msg-1"]))
     ).toEqual(["msg-1", "msg-11"]);
   });
 });

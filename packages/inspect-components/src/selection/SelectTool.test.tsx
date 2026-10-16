@@ -2,15 +2,16 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { TranscriptSelectTool } from "./TranscriptSelectTool";
+import { SelectTool } from "./SelectTool";
 
 afterEach(cleanup);
 
-describe("TranscriptSelectTool", () => {
+describe("SelectTool", () => {
   it("renders a plain Select toggle when the mode is off", () => {
     const onToggle = vi.fn();
     render(
-      <TranscriptSelectTool
+      <SelectTool
+        item="event"
         active={false}
         count={0}
         onToggle={onToggle}
@@ -28,7 +29,8 @@ describe("TranscriptSelectTool", () => {
 
   it("latches without a count while nothing is selected", () => {
     render(
-      <TranscriptSelectTool
+      <SelectTool
+        item="event"
         active={true}
         count={0}
         onToggle={() => {}}
@@ -47,7 +49,8 @@ describe("TranscriptSelectTool", () => {
     const onToggle = vi.fn();
     const onClear = vi.fn();
     render(
-      <TranscriptSelectTool
+      <SelectTool
+        item="event"
         active={true}
         count={3}
         onToggle={onToggle}
@@ -62,14 +65,14 @@ describe("TranscriptSelectTool", () => {
     expect(onClear).toHaveBeenCalledOnce();
   });
 
-  it("names the item in titles when itemName is set", () => {
+  it("names the item in its titles", () => {
     render(
-      <TranscriptSelectTool
+      <SelectTool
+        item="message"
         active={false}
         count={0}
         onToggle={() => {}}
         onClear={() => {}}
-        itemName="messages"
       />
     );
     expect(screen.getByRole("button", { name: "Select" }).title).toBe(

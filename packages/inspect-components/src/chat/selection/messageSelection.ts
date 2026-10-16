@@ -3,37 +3,7 @@ import type {
   ChatMessageSystem,
 } from "@tsmono/inspect-common/types";
 
-import { mergedSystemMessage, MessageFold } from "../messages";
-
-/**
- * Evidence selection for message export: the chat rows a reviewer has
- * checked plus the anchor for shift-click ranges. Hosts own the state (store
- * or component state); the chat list only reads it and hands back the next
- * state through `onChange`.
- */
-export interface MessageSelectionState {
-  /** Selected row ids: the message id, or the position-based `msg-<n>` the
-   *  fold mints for logs that predate ids (see `buildSelectableMessageIndex`). */
-  selectedIds: ReadonlySet<string>;
-  /** Last individually toggled id; shift-click extends from here. */
-  lastToggledId: string | null;
-}
-
-/** Host adapter handed to the chat list; present only while selection mode is on. */
-export interface MessageSelection extends MessageSelectionState {
-  onChange: (state: MessageSelectionState) => void;
-}
-
-/** Per-list selection the virtual list hands to message rows via context. */
-export interface MessageRowSelectionProps {
-  selectedIds: ReadonlySet<string>;
-  onToggle: (id: string, extend: boolean) => void;
-}
-
-export const kEmptyMessageSelection: MessageSelectionState = {
-  selectedIds: new Set<string>(),
-  lastToggledId: null,
-};
+import { mergedSystemMessage, MessageFold, withDisplayId } from "../messages";
 
 const isSystemMessage = (message: ChatMessage): message is ChatMessageSystem =>
   message.role === "system";
@@ -73,8 +43,7 @@ export const buildSelectableMessageIndex = (
   });
   messages.forEach((message, index) => {
     // Give the fold its display ID without changing the exported object.
-    const resolved =
-      message.id === undefined ? { ...message, id: `msg-${index}` } : message;
+    const resolved = withDisplayId(message, index);
     originals.set(resolved, message);
     fold.next(resolved, index);
   });
@@ -89,23 +58,3 @@ export const buildSelectableMessageIndex = (
       : rows;
   return new Map(ordered.map((row) => [row.id, row.messages]));
 };
-
-/** The selected messages, in chat order: each selected row contributes its
- *  head message plus the tool messages folded under it. */
-export const resolveSelectedMessages = (
-  index: ReadonlyMap<string, ChatMessage[]>,
-  selectedIds: ReadonlySet<string>
-): ChatMessage[] => {
-  if (selectedIds.size === 0) return [];
-  const messages: ChatMessage[] = [];
-  for (const [id, rowMessages] of index) {
-    if (selectedIds.has(id)) messages.push(...rowMessages);
-  }
-  return messages;
-};
-
-/** The selected ids that resolve, in chat order (e.g. for a print URL). */
-export const resolveSelectedMessageIds = (
-  index: ReadonlyMap<string, ChatMessage[]>,
-  selectedIds: ReadonlySet<string>
-): string[] => [...index.keys()].filter((id) => selectedIds.has(id));

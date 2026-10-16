@@ -5,9 +5,9 @@ import { EvalSample } from "@tsmono/inspect-common/types";
 import {
   buildSelectableMessageIndex,
   ChatView,
-  resolveSelectedMessages,
 } from "@tsmono/inspect-components/chat";
 import { MetaDataGrid } from "@tsmono/inspect-components/content";
+import { resolveSelected } from "@tsmono/inspect-components/selection";
 import {
   flatTree,
   selectedEventNodes,
@@ -100,10 +100,10 @@ const SamplePrintViewContent: FC = () => {
   const printMessages = useMemo(() => {
     const ids = searchParams.getAll("messages");
     return ids.length > 0
-      ? resolveSelectedMessages(
+      ? resolveSelected(
           buildSelectableMessageIndex(sampleMessages),
           new Set(ids)
-        )
+        ).flat()
       : sampleMessages;
   }, [sampleMessages, searchParams]);
   const messageSelectionNotFound =

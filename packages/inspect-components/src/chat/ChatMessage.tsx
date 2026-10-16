@@ -121,7 +121,9 @@ export const ChatMessage: FC<ChatMessageProps> = memo(function ChatMessage({
       )}
     >
       <div>
-        {headerLeading}
+        {headerLeading ? (
+          <span className={styles.headerLeading}>{headerLeading}</span>
+        ) : null}
         {message.role}
         {message.role === "tool"
           ? message.function

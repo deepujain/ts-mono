@@ -3,11 +3,12 @@ import { FC } from "react";
 
 import { ToolButton } from "@tsmono/react/components";
 
-import { TranscriptIcons } from "../icons";
+import { TranscriptIcons } from "../transcript/icons";
 
-import styles from "./TranscriptSelectTool.module.css";
+import type { SelectableItem } from "./rowSelection";
+import styles from "./SelectTool.module.css";
 
-interface TranscriptSelectToolProps {
+interface SelectToolProps {
   /** Selection mode is on (headers show checkboxes). */
   active: boolean;
   /** Number of selected items; with a selection the tool becomes a split
@@ -17,30 +18,29 @@ interface TranscriptSelectToolProps {
   onToggle: () => void;
   /** Clear the selection and leave the mode (the × segment). */
   onClear: () => void;
-  /** Noun used in the titles ("events" for the transcript, "messages" for
-   *  the chat). The visible label stays `Select`. */
-  itemName?: string;
+  /** What the rows are, for the titles; the visible label stays `Select`. */
+  item: SelectableItem;
   className?: string;
 }
 
 /**
- * Toolbar toggle for transcript evidence selection: `Select` (off), a latched
+ * Toolbar toggle for evidence selection: `Select` (off), a latched
  * `Select` (on, nothing selected) or a latched split `Select · N | ×`, where
  * × clears the selection and exits the mode in one press.
  */
-export const TranscriptSelectTool: FC<TranscriptSelectToolProps> = ({
+export const SelectTool: FC<SelectToolProps> = ({
   active,
   count,
   onToggle,
   onClear,
-  itemName = "events",
+  item,
   className,
 }) => {
   const hasSelection = active && count > 0;
   const title = !active
-    ? `Select ${itemName}`
+    ? `Select ${item}s`
     : count === 0
-      ? `Click ${itemName} to select · click again to exit`
+      ? `Click ${item}s to select · click again to exit`
       : "Exit select mode";
   return (
     <span className={clsx(styles.group, className)}>

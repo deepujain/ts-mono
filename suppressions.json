@@ -252,7 +252,7 @@
       "undescribed": 1
     },
     "tsmono/no-raw-use-effect": {
-      "count": 6
+      "count": 5
     }
   },
   "apps/inspect/src/app/samples/SampleSummaryView.tsx": {

@@ -109,7 +109,6 @@ const renderPanel = () =>
   render(
     <MemoryRouter initialEntries={[kSampleRoute]}>
       <TranscriptPanel
-        selectionKey="test-visit"
         id="test-transcript"
         scrollRef={createRef<HTMLDivElement>()}
         events={[]}

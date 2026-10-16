@@ -5,15 +5,16 @@ import type { ChatMessageTool } from "@tsmono/inspect-common/types";
 import type { MarkdownReference } from "@tsmono/react/components";
 import { getOwn } from "@tsmono/util";
 
+import {
+  RowSelectCheckbox,
+  useSelectableRow,
+} from "../selection/RowSelectCheckbox";
+
 import { ChatMessage } from "./ChatMessage";
 import styles from "./ChatMessageRow.module.css";
 import { MessageLabel } from "./MessageLabel";
 import { hasServerToolUse, ResolvedMessage } from "./messages";
 import { hasVisibleContent } from "./rowsModel";
-import {
-  MessageSelectCheckbox,
-  useMessageRowSelection,
-} from "./selection/MessageSelectCheckbox";
 import { ClientToolCall } from "./tools/ClientToolCall";
 import { resolveToolInput, substituteToolCallContent } from "./tools/tool";
 import {
@@ -65,11 +66,11 @@ export const ChatMessageRow = memo(function ChatMessageRow({
   // renders in the first block's header, the row highlights when selected.
   // Selection rides context (not props) so a toggle re-renders only the
   // rows whose state changed; chatMessageRowEqual needs no update.
-  const rowSelection = useMessageRowSelection(
+  const rowSelection = useSelectableRow(
     resolvedMessage.message.id ?? undefined
   );
   const headerLeading = rowSelection ? (
-    <MessageSelectCheckbox selection={rowSelection} />
+    <RowSelectCheckbox selection={rowSelection} item="message" />
   ) : undefined;
 
   const views: ReactNode[] = [];
@@ -301,9 +302,12 @@ export const ChatMessageRow = memo(function ChatMessageRow({
         </div>
       );
     });
-    // No single row container here, so the selected frame wraps the parts.
-    return rowSelection?.selected ? (
-      <div className={styles.selected}>{parts}</div>
+    // No single row container here, so in selection mode a frame wraps the
+    // parts; it stays mounted across toggles so the parts keep their state.
+    return rowSelection ? (
+      <div className={clsx(rowSelection.selected && styles.selected)}>
+        {parts}
+      </div>
     ) : (
       parts
     );

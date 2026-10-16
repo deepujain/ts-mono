@@ -21,10 +21,12 @@ import {
   MetaDataGrid,
 } from "@tsmono/inspect-components/content";
 import {
+  selectionMenuChrome,
+  SelectTool,
+} from "@tsmono/inspect-components/selection";
+import {
   eventsToMarkdown,
   eventsToStr,
-  selectionMenuChrome,
-  TranscriptSelectTool,
   useTranscriptSelection,
   type TranscriptLayoutRightRailProps,
 } from "@tsmono/inspect-components/transcript";
@@ -413,8 +415,9 @@ export const TranscriptBody: FC<TranscriptBodyProps> = ({
 
   if (onEventsTab) {
     tabTools.push(
-      <TranscriptSelectTool
+      <SelectTool
         key="events-select"
+        item="event"
         active={evidence.active}
         count={evidence.selectedCount}
         onToggle={evidence.toggleActive}
@@ -631,7 +634,7 @@ const CopyToolbarButton: FC<{
 
   const selectionMenu =
     selectedCount > 0
-      ? selectionMenuChrome(selectedCount, onClearSelection)
+      ? selectionMenuChrome(selectedCount, "event", onClearSelection)
       : undefined;
   const hasSelection = selectionMenu !== undefined;
 

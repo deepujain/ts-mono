@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useLocation } from "react-router";
 
+import type { SelectableItem } from "@tsmono/inspect-components/selection";
 import { directoryRelativeUrl, encodePathParts } from "@tsmono/util";
 
 import {
@@ -121,8 +122,9 @@ export const logSamplesUrl = (
 };
 
 /**
- * Print route for a sample tab. `eventIds` narrows a transcript print to the
- * selected events (one `events=` param each, so ids never need a separator).
+ * Print route for a sample tab. `selection` narrows the print to the selected
+ * rows: one `events=` or `messages=` param per id, so ids never need a
+ * separator.
  */
 export const printSampleUrl = (
   logPath: string,
@@ -130,21 +132,17 @@ export const printSampleUrl = (
   epoch: string | number,
   view: string,
   prefix: RoutePrefix = "/logs",
-  eventIds?: readonly string[],
-  messageIds?: readonly string[]
+  selection?: { item: SelectableItem; ids: readonly string[] }
 ) => {
   const decodedLogPath = decodeUrlParam(logPath) || logPath;
   const encodedSampleId = encodeURIComponent(String(sampleId));
-  const eventParams = (eventIds ?? [])
-    .map((id) => `&events=${encodeURIComponent(id)}`)
-    .join("");
-  const messageParams = (messageIds ?? [])
-    .map((id) => `&messages=${encodeURIComponent(id)}`)
+  const selectionParams = (selection?.ids ?? [])
+    .map((id) => `&${selection?.item}s=${encodeURIComponent(id)}`)
     .join("");
   return (
     encodePathParts(
       `${prefix}/${decodedLogPath}/samples/sample/${encodedSampleId}/${epoch}/print`
-    ) + `?view=${view}${eventParams}${messageParams}`
+    ) + `?view=${view}${selectionParams}`
   );
 };
 
