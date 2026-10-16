@@ -191,6 +191,35 @@ describe("useLogsSync", () => {
     expect(result.current.error).toBeUndefined();
   });
 
+  it("reports a failed sync in a never-visited folder as a refresh error once the dir has synced", async () => {
+    const getLogs = vi
+      .fn<() => Promise<LogFilesResponse>>()
+      .mockResolvedValueOnce(listing([]))
+      .mockRejectedValue(new Error("server down"));
+    activateFetchEngine(
+      resolveConfig(
+        testClientAPI({
+          client_events: () => Promise.resolve([]),
+          get_logs: getLogs,
+        }),
+        false
+      )
+    );
+
+    const root = renderHook(() => useLogsSync(LOG_DIR, ""), { wrapper });
+    await waitFor(() => {
+      expect(getLogs).toHaveBeenCalledTimes(1);
+      expect(root.result.current.loading).toBe(false);
+    });
+
+    // A new folder is a new sync query, but the dir already synced.
+    const sub = renderHook(() => useLogsSync(LOG_DIR, "sub"), { wrapper });
+    await waitFor(() =>
+      expect(sub.result.current.refreshError?.message).toBe("server down")
+    );
+    expect(sub.result.current.error).toBeUndefined();
+  });
+
   it("folds engine background fetching into busy but not loading", async () => {
     // The synced listing has a file whose preview backfill never settles.
     const getSummaries = vi.fn(() => new Promise<never>(() => {}));

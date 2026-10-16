@@ -53,10 +53,11 @@ export interface ListingStatus {
    *  background. For subordinate indications (footer "Syncing data" text,
    *  empty-grid overlays). */
   busy: boolean;
-  /** The listing sync failed before ever succeeding for this scope, so
-   *  there is no synced listing to show. */
+  /** The listing sync failed and no sync of this log dir has succeeded this
+   *  session, so there is no current listing to show. */
   error: Error | undefined;
-  /** A re-sync failed after an earlier one succeeded. The synced listing is
+  /** The listing sync failed after an earlier sync of this log dir succeeded
+   *  (in any folder: a sync always covers the whole dir). The listing is
    *  still valid, just possibly stale; the next poll-driven re-sync retries
    *  and clears this on success. */
   refreshError: Error | undefined;
@@ -98,16 +99,17 @@ export const useLogsSync = (logDir: string, scope: string): ListingStatus => {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
-  const { syncing } = useFetchEngineStatus();
-  const { isFetching, isPending, isRefetchError, error } = sync;
+  const { syncing, lastSyncedAt } = useFetchEngineStatus();
+  const { isFetching, isPending, error } = sync;
+  const synced = lastSyncedAt !== undefined;
   return useMemo(
     () => ({
       loading: isFetching,
       busy: isPending || syncing,
-      error: isRefetchError ? undefined : (error ?? undefined),
-      refreshError: isRefetchError ? error : undefined,
+      error: synced ? undefined : (error ?? undefined),
+      refreshError: synced ? (error ?? undefined) : undefined,
     }),
-    [isFetching, isPending, isRefetchError, error, syncing]
+    [isFetching, isPending, error, syncing, synced]
   );
 };
 
