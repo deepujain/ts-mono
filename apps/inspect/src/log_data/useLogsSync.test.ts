@@ -169,8 +169,14 @@ describe("useLogsSync", () => {
     );
     expect(result.current.refreshError).toBeUndefined();
 
+    // Refetching clears `error` while pending, so wait for the success to
+    // settle before invalidating again (or the next fetch dedupes onto it).
     invalidateLogListing();
-    await waitFor(() => expect(result.current.error).toBeUndefined());
+    await waitFor(() => {
+      expect(getLogs).toHaveBeenCalledTimes(2);
+      expect(result.current.loading).toBe(false);
+    });
+    expect(result.current.error).toBeUndefined();
     expect(result.current.refreshError).toBeUndefined();
 
     // A listing has synced: the failure is a refresh error, not a blocking one.

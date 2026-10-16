@@ -2,6 +2,8 @@ import { delay, http, HttpResponse } from "msw";
 
 import { expect, test } from "./fixtures/app";
 import {
+  gridCell,
+  LOG_FILES,
   setupLogListHandlers,
   waitForGrid,
 } from "./fixtures/log-list-scenario";
@@ -140,27 +142,29 @@ test.describe("Server error state", () => {
       )
     );
 
-    const flagged = page.getByRole("button", {
-      name: "Viewer information and options (listing refresh failed)",
+    const options = page.getByRole("button", {
+      name: "Viewer information and options",
     });
-    await expect(flagged).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole("grid")).toBeVisible();
+    await expect(options).toHaveAccessibleDescription(
+      /Listing refresh failed: .*Refresh failed/,
+      { timeout: 15_000 }
+    );
+    await expect(gridCell(page, "task-alpha")).toBeVisible();
     await expect(page.locator("[data-testid='error-panel']")).toHaveCount(0);
 
-    await flagged.click();
+    await options.click();
     await expect(page.getByText("Refresh failed")).toBeVisible();
 
-    // The next successful re-sync clears the flag.
+    // The next successful re-sync clears the flag and keeps the rows.
     network.use(
       http.get("*/api/log-files*", () =>
-        HttpResponse.json({ files: [], response_type: "full" })
+        HttpResponse.json({ files: LOG_FILES, response_type: "full" })
       )
     );
-    await expect(
-      page.getByRole("button", {
-        name: "Viewer information and options",
-        exact: true,
-      })
-    ).toBeVisible({ timeout: 15_000 });
+    await expect(options).not.toHaveAccessibleDescription(
+      /Listing refresh failed/,
+      { timeout: 15_000 }
+    );
+    await expect(gridCell(page, "task-alpha")).toBeVisible();
   });
 });
