@@ -50,7 +50,6 @@ import {
 } from "@tsmono/react/hooks";
 import { formatDateTime, isHostedEnvironment } from "@tsmono/util";
 
-import { ApplicationIcons } from "../../icons";
 import {
   getRailParam,
   nextRailValue,
@@ -303,7 +302,7 @@ export const TranscriptBody: FC<TranscriptBodyProps> = ({
       {
         id: "search",
         label: "Search",
-        icon: ApplicationIcons.search,
+        icon: "search",
         disabled: !resolvedTranscriptsDir,
         title: resolvedTranscriptsDir
           ? "Search"
@@ -312,7 +311,7 @@ export const TranscriptBody: FC<TranscriptBodyProps> = ({
       {
         id: "validation",
         label: "Validation",
-        icon: ApplicationIcons.edit,
+        icon: "edit",
       },
     ],
     [resolvedTranscriptsDir]
@@ -372,7 +371,7 @@ export const TranscriptBody: FC<TranscriptBodyProps> = ({
       <ToolButton
         key="events-filter-transcript"
         label={`Events: ${label}`}
-        icon={ApplicationIcons.filter}
+        icon="filter"
         onClick={toggleTranscriptFilterShowing}
         className={styles.tabTool}
         subtle={true}
@@ -384,11 +383,7 @@ export const TranscriptBody: FC<TranscriptBodyProps> = ({
       <ToolButton
         key="event-collapse-transcript"
         label={eventsCollapsed ? "Expand" : "Collapse"}
-        icon={
-          eventsCollapsed
-            ? ApplicationIcons.expand.all
-            : ApplicationIcons.collapse.all
-        }
+        icon={eventsCollapsed ? "expandAll" : "collapseAll"}
         onClick={() => {
           collapseEvents(!eventsCollapsed);
         }}
@@ -401,7 +396,7 @@ export const TranscriptBody: FC<TranscriptBodyProps> = ({
     <ToolButton
       key="display-mode-toggle"
       label={displayMode === "rendered" ? "Raw" : "Rendered"}
-      icon={ApplicationIcons.display}
+      icon="display"
       onClick={toggleDisplayMode}
       className={styles.tabTool}
       subtle={true}
@@ -630,7 +625,7 @@ const CopyToolbarButton: FC<{
   onClearSelection,
 }) => {
   const { copied, copy: copyText } = useCopyToClipboard();
-  const icon = copied ? ApplicationIcons.confirm : ApplicationIcons.copy;
+  const icon = copied ? "confirm" : "copy";
 
   const selectionMenu =
     selectedCount > 0

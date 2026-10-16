@@ -3,8 +3,6 @@ import { FC } from "react";
 
 import { ToolButton } from "@tsmono/react/components";
 
-import { TranscriptIcons } from "../transcript/icons";
-
 import type { SelectableItem } from "./rowSelection";
 import styles from "./SelectTool.module.css";
 
@@ -46,11 +44,7 @@ export const SelectTool: FC<SelectToolProps> = ({
     <span className={clsx(styles.group, className)}>
       <ToolButton
         label={hasSelection ? `Select · ${count}` : "Select"}
-        icon={
-          active
-            ? TranscriptIcons.selection.selecting
-            : TranscriptIcons.selection.select
-        }
+        icon={active ? "selectionSelecting" : "selectionSelect"}
         latched={active}
         subtle
         className={hasSelection ? styles.splitMain : undefined}
@@ -60,7 +54,7 @@ export const SelectTool: FC<SelectToolProps> = ({
       />
       {hasSelection ? (
         <ToolButton
-          icon={TranscriptIcons.selection.clear}
+          icon="selectionClear"
           latched
           subtle
           className={styles.splitClear}

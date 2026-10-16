@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { FC, useContext } from "react";
 
-import { TranscriptIcons } from "../transcript/icons";
+import { Icon } from "@tsmono/react/icons";
 
 import styles from "./RowSelectCheckbox.module.css";
 import type { SelectableItem } from "./rowSelection";
@@ -56,7 +56,7 @@ export const RowSelectCheckbox: FC<{
         onToggle(id, e.shiftKey);
       }}
     >
-      {selected ? <i className={TranscriptIcons.selection.checked} /> : null}
+      {selected ? <Icon name="selectionChecked" /> : null}
     </button>
   );
 };

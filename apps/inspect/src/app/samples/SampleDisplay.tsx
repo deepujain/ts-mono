@@ -70,6 +70,7 @@ import {
   useUnmount,
   useVisitId,
 } from "@tsmono/react/hooks";
+import { IconName } from "@tsmono/react/icons";
 import { openRouteInNewTab } from "@tsmono/react/routing";
 import { isHostedEnvironment, isVscode } from "@tsmono/util";
 
@@ -102,7 +103,6 @@ import {
 import { useStore } from "../../state/store";
 import { cssVars } from "../../utils/cssVars";
 import { formatDateTime } from "../../utils/format";
-import { ApplicationIcons } from "../appearance/icons";
 import { useCurrentSampleHandle } from "../routing/currentSelection";
 import { useSampleDetailNavigation } from "../routing/sampleNavigation";
 import {
@@ -475,7 +475,7 @@ export const SampleDisplay: FC<SampleDisplayProps> = ({
   const downloadFiles = useStore((state) => state.capabilities.downloadFiles);
 
   const { copied, copy: copyText } = useCopyToClipboard();
-  const icon = copied ? ApplicationIcons.confirm : ApplicationIcons.copy;
+  const icon: IconName = copied ? "confirm" : "copy";
   const downloadFile = (name: string, content: string | Blob) => {
     api.download_file(name, content).catch((error: unknown) => {
       console.error("Failed to download:", error);
@@ -599,7 +599,7 @@ export const SampleDisplay: FC<SampleDisplayProps> = ({
       <ToolButton
         key="sample-filter-transcript"
         label={`Events: ${label}`}
-        icon={ApplicationIcons.filter}
+        icon="filter"
         onClick={toggleFilter}
         ref={setFilterButtonEl}
         subtle
@@ -607,11 +607,7 @@ export const SampleDisplay: FC<SampleDisplayProps> = ({
       <ToolButton
         key="sample-collapse-transcript"
         label={isCollapsed(collapsedMode) ? "Expand" : "Collapse"}
-        icon={
-          isCollapsed(collapsedMode)
-            ? ApplicationIcons.expand.all
-            : ApplicationIcons.collapse.all
-        }
+        icon={isCollapsed(collapsedMode) ? "expandAll" : "collapseAll"}
         onClick={toggleCollapsedMode}
         subtle
       />
@@ -622,7 +618,7 @@ export const SampleDisplay: FC<SampleDisplayProps> = ({
     <ToolButton
       key="options-button"
       label={"Raw"}
-      icon={ApplicationIcons.display}
+      icon="display"
       onClick={toggleDisplayMode}
       ref={optionsRef}
       latched={displayMode === "raw"}
@@ -695,7 +691,7 @@ export const SampleDisplay: FC<SampleDisplayProps> = ({
       <ToolDropdownButton
         key="sample-download"
         label="Download"
-        icon={ApplicationIcons.downloadLog}
+        icon="download"
         subtle
         dropdownClassName="text-size-smallest"
         heading={selected?.menu.heading}
@@ -759,7 +755,7 @@ export const SampleDisplay: FC<SampleDisplayProps> = ({
             ? `Print ${selected.count} selected ${selected.item}${selected.count === 1 ? "" : "s"}`
             : undefined
         }
-        icon={ApplicationIcons.copy}
+        icon="copy"
         onClick={handlePrintClick}
         subtle
       />
@@ -851,14 +847,14 @@ export const SampleDisplay: FC<SampleDisplayProps> = ({
       items.push({
         id: "search",
         label: "Search",
-        icon: ApplicationIcons.search,
+        icon: "search",
       });
     }
     if (scans.hasScans) {
       items.push({
         id: "scans",
         label: "Scans",
-        icon: ApplicationIcons.scoringSidebar,
+        icon: "scanner",
       });
     }
     return items;

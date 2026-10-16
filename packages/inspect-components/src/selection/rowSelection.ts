@@ -1,4 +1,4 @@
-import { TranscriptIcons } from "../transcript/icons";
+import type { IconName } from "@tsmono/react/icons";
 
 /** What a list's rows are, for labels and titles ("Select events"). */
 export type SelectableItem = "event" | "message";
@@ -90,11 +90,14 @@ export const selectionMenuChrome = (
   count: number,
   item: SelectableItem,
   onClear: () => void
-) => ({
+): {
+  heading: string;
+  footer: { label: string; icon: IconName; onClick: () => void };
+} => ({
   heading: `Selected ${item}s (${count})`,
   footer: {
     label: "Clear selection",
-    icon: TranscriptIcons.selection.clear,
+    icon: "selectionClear",
     onClick: onClear,
   },
 });

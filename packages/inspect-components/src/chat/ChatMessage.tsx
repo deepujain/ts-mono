@@ -59,7 +59,6 @@ export const ChatMessage: FC<ChatMessageProps> = memo(function ChatMessage({
   const formatDateTime = display?.formatDateTime;
   const linkingEnabled = linking?.enabled ?? false;
   const getMessageUrl = linking?.getMessageUrl;
-  const linkIcon = linking?.icon ?? "bi bi-link-45deg";
   const displayMode = useDisplayMode();
 
   const messageUrl = getMessageUrl?.(message.id || "");
@@ -132,7 +131,7 @@ export const ChatMessage: FC<ChatMessageProps> = memo(function ChatMessage({
           : ""}
         {linkingEnabled && messageUrl ? (
           <CopyButton
-            icon={linkIcon}
+            icon="link"
             value={messageUrl}
             className={clsx(styles.copyLink)}
           />

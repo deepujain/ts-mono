@@ -131,9 +131,6 @@ export {
   type TranscriptLayoutEmptyProps,
 } from "./TranscriptLayout";
 
-// Icons
-export { TranscriptIcons } from "./icons";
-
 // Context
 export {
   TimelineSelectContext,
