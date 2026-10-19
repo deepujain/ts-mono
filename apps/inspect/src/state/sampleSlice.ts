@@ -37,7 +37,7 @@ export interface SampleSlice {
       selectedIds: string[],
       lastToggledId: string | null
     ) => void;
-    /** Drop the selected events; the mode toggle is left as is. */
+    /** Drop the selected rows; the mode toggle is left as is. */
     clearEvidenceSelection: () => void;
     resetEvidenceSelection: () => void;
 

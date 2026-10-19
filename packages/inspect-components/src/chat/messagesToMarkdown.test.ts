@@ -80,6 +80,42 @@ describe("messagesToMarkdown", () => {
     expect(md).not.toContain("OPAQUE");
   });
 
+  it("labels reasoning and quotes it so it reads apart from the reply", () => {
+    const md = messagesToMarkdown([
+      testAssistantMessage({
+        content: [
+          reasoningContent({ reasoning: "Check the parity.\n\nIt is even." }),
+          { type: "text", text: "The answer is 4." },
+        ],
+      }),
+    ]);
+    expect(md).toBe(
+      "## Assistant\n\n**Reasoning**\n\n> Check the parity.\n> \n> It is even.\n\nThe answer is 4."
+    );
+  });
+
+  it("titles a summary shown in place of reasoning as the chat view does", () => {
+    const redacted = messagesToMarkdown([
+      testAssistantMessage({
+        content: [
+          reasoningContent({
+            reasoning: "OPAQUE",
+            summary: "Plan.",
+            redacted: true,
+          }),
+        ],
+      }),
+    ]);
+    const missing = messagesToMarkdown([
+      testAssistantMessage({
+        content: [reasoningContent({ summary: "Plan." })],
+      }),
+    ]);
+    for (const md of [redacted, missing]) {
+      expect(md).toBe("## Assistant\n\n**Reasoning (Summary)**\n\n> Plan.");
+    }
+  });
+
   it("lengthens the fence past backtick runs in the value", () => {
     const md = messagesToMarkdown([
       testToolMessage({ content: "```\ncode\n```", tool_call_id: "c-1" }),

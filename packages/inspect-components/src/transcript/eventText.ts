@@ -1,7 +1,7 @@
 import type { Content } from "@tsmono/inspect-common/types";
 import { isRecord, toTitleCase } from "@tsmono/util";
 
-import { fenced, inlineCode } from "../content/markdownCode";
+import { fenced, inlineCode, quoted } from "../content/markdownBlocks";
 
 import { eventTitle } from "./event/utils";
 import { formatModifiedCall, formatSuspicion } from "./transform/toolSentinels";
@@ -524,12 +524,6 @@ const kProseFields: ReadonlySet<string> = new Set([
   "output",
   "title",
 ]);
-
-const quoted = (value: string): string =>
-  value
-    .split("\n")
-    .map((line) => `> ${line}`)
-    .join("\n");
 
 const kCodeLikeFields: ReadonlySet<string> = new Set([
   "arguments",

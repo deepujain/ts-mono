@@ -1,5 +1,5 @@
-// Code spans and fences for the Markdown exports (eventsToMarkdown,
-// messagesToMarkdown): each delimiter is longer than any backtick run in the
+// Shared blocks for the Markdown exports (eventsToMarkdown,
+// messagesToMarkdown). Code delimiters are longer than any backtick run in the
 // value, so the value always renders verbatim.
 
 const longestBacktickRun = (value: string): number => {
@@ -22,3 +22,9 @@ export const fenced = (value: string): string => {
   const fence = "`".repeat(Math.max(2, longestBacktickRun(value)) + 1);
   return `${fence}\n${value}\n${fence}`;
 };
+
+export const quoted = (value: string): string =>
+  value
+    .split("\n")
+    .map((line) => `> ${line}`)
+    .join("\n");

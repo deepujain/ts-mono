@@ -6,7 +6,7 @@ import type {
   ContentToolUse,
 } from "@tsmono/inspect-common/types";
 
-import { fenced } from "../content/markdownCode";
+import { fenced, quoted } from "../content/markdownBlocks";
 
 /**
  * Converts selected messages to a Markdown document suitable for reports
@@ -81,11 +81,15 @@ const contentItemMarkdown = (item: Content): string | null => {
 
 const textMarkdown = (item: ContentText): string | null => item.text || null;
 
+// Titled like the chat view and quoted, so the reader can tell where the
+// reasoning ends and the reply begins. A redacted chain is never exported,
+// only its reviewer-facing summary.
 const reasoningMarkdown = (item: ContentReasoning): string | null => {
-  // A redacted reasoning summary is reviewer-facing by design; the raw
-  // chain is not.
-  const text = item.redacted ? item.summary : item.reasoning || item.summary;
-  return text || null;
+  const summary = item.redacted || !item.reasoning;
+  const text = summary ? item.summary : item.reasoning;
+  if (!text) return null;
+  const title = summary ? "Reasoning (Summary)" : "Reasoning";
+  return `**${title}**\n\n${quoted(text)}`;
 };
 
 const toolUseMarkdown = (item: ContentToolUse): string => {
